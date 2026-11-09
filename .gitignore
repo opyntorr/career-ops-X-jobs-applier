@@ -109,6 +109,7 @@ config/discord.yml
 data/firefox_storage_state.json
 data/discord-bot-state.json
 data/discord-state.json
+data/antigravity-settings.json
 data/pending-drafts.md
 *.sqlite
 *.sqlite3

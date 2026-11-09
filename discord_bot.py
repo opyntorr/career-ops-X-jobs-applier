@@ -5,7 +5,7 @@ Centro de Comando multicanal para gestion autonoma de postulaciones y CVs.
 Canales dedicados:
 - #control-y-batches: Panel interactivo persistente, ejecucion de lotes y feed de exitos.
 - #finalizacion-manual: Vacantes con CAPTCHA o portales corporativos complejos con boton de confirmacion.
-- #chat-antigravity: Chat directo con Antigravity CLI para consultas y configuraciones remotas.
+- #chat-antigravity: Chat directo con Antigravity CLI con controles de modelo, nivel de esfuerzo y comando /plan.
 - #generador-cvs: Generador on-demand de CVs personalizados a 1 pagina por enlace o descripcion.
 Sin emojis.
 """
@@ -13,6 +13,7 @@ Sin emojis.
 import os
 import sys
 import re
+import json
 import yaml
 import asyncio
 import logging
@@ -30,6 +31,7 @@ OUTPUT_DIR = CAREER_OPS_DIR / "output"
 PROOFS_DIR = OUTPUT_DIR / "proofs"
 REPORTS_DIR = CAREER_OPS_DIR / "reports"
 PENDING_DRAFTS_FILE = CAREER_OPS_DIR / "data" / "pending-drafts.md"
+AGY_SETTINGS_FILE = CAREER_OPS_DIR / "data" / "antigravity-settings.json"
 
 sys.path.insert(0, str(CAREER_OPS_DIR))
 
@@ -50,6 +52,21 @@ logging.basicConfig(
 )
 logger = logging.getLogger("discord_bot")
 
+DEFAULT_AGY_SETTINGS = {
+    "model": "gemini-3.8-flash",
+    "effort": "high",
+    "mode": "auto"
+}
+
+VALID_MODELS = [
+    "gemini-3.8-flash",
+    "claude-sonnet-4-6",
+    "claude-opus-4-6-thinking",
+    "gpt-oss-120b-medium"
+]
+
+VALID_EFFORTS = ["low", "medium", "high", "xhigh", "max"]
+
 
 def load_config() -> dict:
     if not CONFIG_FILE.exists():
@@ -62,6 +79,58 @@ def save_config(cfg: dict):
     CONFIG_FILE.parent.mkdir(parents=True, exist_ok=True)
     with open(CONFIG_FILE, "w", encoding="utf-8") as f:
         yaml.safe_dump(cfg, f, default_flow_style=False)
+
+
+def load_antigravity_settings() -> dict:
+    """Carga la configuracion activa de Antigravity (modelo, esfuerzo, modo)."""
+    if not AGY_SETTINGS_FILE.exists():
+        save_antigravity_settings(DEFAULT_AGY_SETTINGS)
+        return dict(DEFAULT_AGY_SETTINGS)
+    try:
+        with open(AGY_SETTINGS_FILE, "r", encoding="utf-8") as f:
+            data = json.load(f)
+            for k, v in DEFAULT_AGY_SETTINGS.items():
+                if k not in data:
+                    data[k] = v
+            return data
+    except Exception as e:
+        logger.warning(f"Error al leer antigravity-settings.json: {e}")
+        return dict(DEFAULT_AGY_SETTINGS)
+
+
+def save_antigravity_settings(settings: dict):
+    """Guarda la configuracion activa de Antigravity en disco."""
+    AGY_SETTINGS_FILE.parent.mkdir(parents=True, exist_ok=True)
+    with open(AGY_SETTINGS_FILE, "w", encoding="utf-8") as f:
+        json.dump(settings, f, indent=2)
+
+
+def build_agy_args(prompt: str, is_plan: bool = False, settings: dict = None) -> list[str]:
+    """Construye los argumentos seguros de la CLI de Antigravity respetando compatibilidad de flags."""
+    if settings is None:
+        settings = load_antigravity_settings()
+
+    cmd = ["agy"]
+
+    # Modo de ejecucion (auto o plan)
+    if is_plan or settings.get("mode") == "plan":
+        cmd.extend(["--mode", "plan"])
+    else:
+        cmd.extend(["--mode", "auto"])
+
+    # Seleccion de modelo
+    model = settings.get("model", "gemini-3.8-flash")
+    if model:
+        cmd.extend(["--model", model])
+
+    # Nivel de esfuerzo (Thinking budget / razonamiento)
+    # Solo modelos que no fijan su presupuesto internamente
+    effort = settings.get("effort", "high")
+    if effort and model not in ["claude-sonnet-4-6", "claude-opus-4-6-thinking"]:
+        cmd.extend(["--effort", effort])
+
+    cmd.append(f"--print={prompt}")
+    return cmd
 
 
 def split_message_chunks(text: str, max_len: int = 1900) -> list[str]:
@@ -78,7 +147,6 @@ def split_message_chunks(text: str, max_len: int = 1900) -> list[str]:
                 chunks.append(current)
                 current = ""
             if len(line) > max_len:
-                # Linea individual muy larga
                 for i in range(0, len(line), max_len):
                     chunks.append(line[i:i + max_len])
             else:
@@ -91,6 +159,221 @@ def split_message_chunks(text: str, max_len: int = 1900) -> list[str]:
     return chunks
 
 
+def render_antigravity_panel_embed(settings: dict) -> discord.Embed:
+    """Genera el Embed informativo con el estado activo de Antigravity."""
+    model = settings.get("model", "gemini-3.8-flash")
+    effort = settings.get("effort", "high")
+    mode = settings.get("mode", "auto")
+
+    effort_desc = {
+        "low": "Bajo (Baja latencia, respuestas directas y rapidas)",
+        "medium": "Medio (Equilibrio estandar entre tiempo y analisis)",
+        "high": "Alto (Analisis profundo, verificacion paso a paso)",
+        "xhigh": "Muy Alto (Razonamiento extendido para tareas complejas)",
+        "max": "Maximo (Presupuesto maximo de pensamiento cognitivo)"
+    }.get(effort, effort)
+
+    model_desc = {
+        "gemini-3.8-flash": "Gemini 3.8 Flash (Velocidad y calidad, soporta ajuste dinamico de esfuerzo)",
+        "claude-sonnet-4-6": "Claude Sonnet 4.6 (Pensamiento avanzado de Anthropic)",
+        "claude-opus-4-6-thinking": "Claude Opus 4.6 (Maxima capacidad cognitiva)",
+        "gpt-oss-120b-medium": "GPT-OSS 120B (Modelo abierto balanceado)"
+    }.get(model, model)
+
+    embed = discord.Embed(
+        title="[ANTIGRAVITY AI CONTROL CENTER] Ajustes de Modelo y Razonamiento",
+        description=(
+            "Control interactivo para el motor de Inteligencia Artificial de Antigravity CLI.\n\n"
+            f"**Modelo Activo:** `{model}`\n"
+            f"*{model_desc}*\n\n"
+            f"**Nivel de Esfuerzo (Thinking Effort):** `{effort}`\n"
+            f"*{effort_desc}*\n\n"
+            f"**Modo por Defecto:** `{mode}`\n\n"
+            "**Comandos Rapidos en Este Canal:**\n"
+            "- `/plan <instrucciones>` - Activa planificacion profunda con analisis y preguntas clave antes de ejecutar\n"
+            "- `/modelo <nombre>` - Cambia el modelo activo\n"
+            "- `/esfuerzo <low|medium|high|xhigh|max>` - Ajusta el nivel de razonamiento\n"
+            "- O utiliza los selectores desplegables y botones inferiores para cambiar parametros en 1 clic."
+        ),
+        color=discord.Color.teal(),
+        timestamp=datetime.now()
+    )
+    embed.set_footer(text="Antigravity CLI v2.0 | Control Remoto Career-Ops")
+    return embed
+
+
+class PlanModal(discord.ui.Modal, title="Planificar Tarea con Antigravity"):
+    task_input = discord.ui.TextInput(
+        label="Instrucciones o Tarea para el Plan",
+        style=discord.TextStyle.paragraph,
+        placeholder="Ej: Planifica la estrategia de postulacion para puestos de mecatronica en Jalisco...",
+        required=True,
+        max_length=2000
+    )
+
+    def __init__(self, bot_instance, channel):
+        super().__init__()
+        self.bot_instance = bot_instance
+        self.channel = channel
+
+    async def on_submit(self, interaction: discord.Interaction):
+        await interaction.response.defer(ephemeral=True)
+        await interaction.followup.send("[OK] Ejecutando planificacion con Antigravity CLI...", ephemeral=True)
+        asyncio.create_task(
+            self.bot_instance.execute_antigravity_query(
+                self.channel,
+                self.task_input.value,
+                is_plan=True,
+                user=interaction.user
+            )
+        )
+
+
+class ModelSelect(discord.ui.Select):
+    """Selector desplegable de modelos para Antigravity."""
+
+    def __init__(self, current_model: str):
+        options = [
+            discord.SelectOption(
+                label="Gemini 3.8 Flash",
+                value="gemini-3.8-flash",
+                description="Velocidad y calidad, soporta ajuste de esfuerzo",
+                default=(current_model == "gemini-3.8-flash")
+            ),
+            discord.SelectOption(
+                label="Claude Sonnet 4.6",
+                value="claude-sonnet-4-6",
+                description="Pensamiento avanzado de Anthropic",
+                default=(current_model == "claude-sonnet-4-6")
+            ),
+            discord.SelectOption(
+                label="Claude Opus 4.6",
+                value="claude-opus-4-6-thinking",
+                description="Maxima capacidad cognitiva",
+                default=(current_model == "claude-opus-4-6-thinking")
+            ),
+            discord.SelectOption(
+                label="GPT-OSS 120B",
+                value="gpt-oss-120b-medium",
+                description="Modelo abierto balanceado",
+                default=(current_model == "gpt-oss-120b-medium")
+            ),
+        ]
+        super().__init__(
+            placeholder="Seleccionar Modelo de Lenguaje...",
+            min_values=1,
+            max_values=1,
+            options=options,
+            custom_id="select_agy_model",
+            row=0
+        )
+
+    async def callback(self, interaction: discord.Interaction):
+        selected_model = self.values[0]
+        settings = load_antigravity_settings()
+        settings["model"] = selected_model
+        save_antigravity_settings(settings)
+
+        embed = render_antigravity_panel_embed(settings)
+        new_view = AntigravityControlView(self.view.bot_instance)
+        await interaction.response.edit_message(embed=embed, view=new_view)
+        await interaction.followup.send(
+            f"[OK] Modelo actualizado a '{selected_model}'.",
+            ephemeral=True
+        )
+
+
+class EffortSelect(discord.ui.Select):
+    """Selector desplegable de esfuerzo de razonamiento para Antigravity."""
+
+    def __init__(self, current_effort: str):
+        options = [
+            discord.SelectOption(
+                label="Esfuerzo: Bajo (low)",
+                value="low",
+                description="Baja latencia, respuestas directas",
+                default=(current_effort == "low")
+            ),
+            discord.SelectOption(
+                label="Esfuerzo: Medio (medium)",
+                value="medium",
+                description="Equilibrio estandar para consultas generales",
+                default=(current_effort == "medium")
+            ),
+            discord.SelectOption(
+                label="Esfuerzo: Alto (high)",
+                value="high",
+                description="Analisis profundo y verificacion",
+                default=(current_effort == "high")
+            ),
+            discord.SelectOption(
+                label="Esfuerzo: Muy Alto (xhigh)",
+                value="xhigh",
+                description="Razonamiento extendido para tareas complejas",
+                default=(current_effort == "xhigh")
+            ),
+            discord.SelectOption(
+                label="Esfuerzo: Maximo (max)",
+                value="max",
+                description="Presupuesto maximo de pensamiento analitico",
+                default=(current_effort == "max")
+            ),
+        ]
+        super().__init__(
+            placeholder="Seleccionar Nivel de Esfuerzo...",
+            min_values=1,
+            max_values=1,
+            options=options,
+            custom_id="select_agy_effort",
+            row=1
+        )
+
+    async def callback(self, interaction: discord.Interaction):
+        selected_effort = self.values[0]
+        settings = load_antigravity_settings()
+        settings["effort"] = selected_effort
+        save_antigravity_settings(settings)
+
+        embed = render_antigravity_panel_embed(settings)
+        new_view = AntigravityControlView(self.view.bot_instance)
+        await interaction.response.edit_message(embed=embed, view=new_view)
+        await interaction.followup.send(
+            f"[OK] Nivel de esfuerzo actualizado a '{selected_effort}'.",
+            ephemeral=True
+        )
+
+
+class AntigravityControlView(discord.ui.View):
+    """Panel de control persistente en #chat-antigravity."""
+
+    def __init__(self, bot_instance):
+        super().__init__(timeout=None)
+        self.bot_instance = bot_instance
+        settings = load_antigravity_settings()
+        self.add_item(ModelSelect(settings.get("model", "gemini-3.8-flash")))
+        self.add_item(EffortSelect(settings.get("effort", "high")))
+
+    @discord.ui.button(label="Planificar con /plan", style=discord.ButtonStyle.primary, custom_id="btn_agy_plan", row=2)
+    async def plan_button_callback(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await interaction.response.send_modal(PlanModal(self.bot_instance, interaction.channel))
+
+    @discord.ui.button(label="Restablecer Defaults", style=discord.ButtonStyle.secondary, custom_id="btn_agy_reset", row=2)
+    async def reset_button_callback(self, interaction: discord.Interaction, button: discord.ui.Button):
+        settings = dict(DEFAULT_AGY_SETTINGS)
+        save_antigravity_settings(settings)
+        embed = render_antigravity_panel_embed(settings)
+        new_view = AntigravityControlView(self.bot_instance)
+        await interaction.response.edit_message(embed=embed, view=new_view)
+        await interaction.followup.send("[OK] Ajustes restablecidos a los valores predeterminados.", ephemeral=True)
+
+    @discord.ui.button(label="Actualizar Panel", style=discord.ButtonStyle.secondary, custom_id="btn_agy_refresh", row=2)
+    async def refresh_button_callback(self, interaction: discord.Interaction, button: discord.ui.Button):
+        settings = load_antigravity_settings()
+        embed = render_antigravity_panel_embed(settings)
+        new_view = AntigravityControlView(self.bot_instance)
+        await interaction.response.edit_message(embed=embed, view=new_view)
+
+
 class ManualDraftView(discord.ui.View):
     """View persistente para vacantes con accion manual en #finalizacion-manual."""
 
@@ -99,7 +382,7 @@ class ManualDraftView(discord.ui.View):
         self.app_id = app_id
         if url:
             self.add_item(discord.ui.Button(label="Abrir Portal", url=url, style=discord.ButtonStyle.link))
-        
+
         btn_done = discord.ui.Button(
             label="Marcar como Enviada",
             style=discord.ButtonStyle.success,
@@ -110,7 +393,6 @@ class ManualDraftView(discord.ui.View):
 
     async def done_callback(self, interaction: discord.Interaction):
         mark_draft_applied(self.app_id)
-        # Deshabilitar boton y actualizar mensaje
         for item in self.children:
             if isinstance(item, discord.ui.Button) and item.custom_id == f"manual_done_{self.app_id}":
                 item.disabled = True
@@ -236,8 +518,9 @@ class CareerOpsDiscordBot(commands.Bot):
         self.cv_generator_channel: Optional[discord.TextChannel] = None
 
     async def setup_hook(self):
-        # Registrar view persistente del panel de control
+        # Registrar views persistentes
         self.add_view(ControlPanelView(self))
+        self.add_view(AntigravityControlView(self))
 
     async def on_ready(self):
         logger.info(f"Conectado como {self.user.name}#{self.user.discriminator} (ID: {self.user.id})")
@@ -256,7 +539,7 @@ class CareerOpsDiscordBot(commands.Bot):
         channel_map = {
             "control": ("control-y-batches", "Panel interactivo de control, ejecucion de lotes y feed de postulaciones exitosas"),
             "manual": ("finalizacion-manual", "Vacantes pendientes de resolucion de CAPTCHA o portales corporativos complejos"),
-            "antigravity": ("chat-antigravity", "Canal directo con Antigravity CLI para consultas tecnicas, metricas y configuracion"),
+            "antigravity": ("chat-antigravity", "Canal directo con Antigravity CLI para consultas tecnicas, configuracion y planificacion"),
             "cv_generator": ("generador-cvs", "Pega aqui el enlace o descripcion de una vacante para generar su CV personalizado en 1 pagina")
         }
 
@@ -273,11 +556,26 @@ class CareerOpsDiscordBot(commands.Bot):
         self.antigravity_channel = created_channels["antigravity"]
         self.cv_generator_channel = created_channels["cv_generator"]
 
-        # Publicar panel de control en #control-y-batches
-        await self.post_control_panel(self.control_channel)
+        # Publicar panel de control en #control-y-batches si no existe
+        has_control_panel = False
+        async for m in self.control_channel.history(limit=10):
+            if m.author.id == self.user.id and m.embeds and "[CAREER-OPS COMMAND CENTER]" in (m.embeds[0].title or ""):
+                has_control_panel = True
+                break
+        if not has_control_panel:
+            await self.post_control_panel(self.control_channel)
+
+        # Publicar panel de configuracion en #chat-antigravity si no existe
+        has_agy_panel = False
+        async for m in self.antigravity_channel.history(limit=10):
+            if m.author.id == self.user.id and m.embeds and "[ANTIGRAVITY AI CONTROL CENTER]" in (m.embeds[0].title or ""):
+                has_agy_panel = True
+                break
+        if not has_agy_panel:
+            await self.post_antigravity_panel(self.antigravity_channel)
 
     async def post_control_panel(self, channel: discord.TextChannel):
-        """Publica o actualiza el mensaje fijado de panel de control interactivo."""
+        """Publica el mensaje de panel de control interactivo en #control-y-batches."""
         stats = get_stats()
         pending = get_pending_drafts()
 
@@ -296,6 +594,13 @@ class CareerOpsDiscordBot(commands.Bot):
         embed.set_footer(text="Fuentes activas: LinkedIn + Indeed + Computrabajo | Motor: Playwright + JobSpy + agy")
 
         view = ControlPanelView(self)
+        await channel.send(embed=embed, view=view)
+
+    async def post_antigravity_panel(self, channel: discord.TextChannel):
+        """Publica el panel interactivo de configuracion de Antigravity en #chat-antigravity."""
+        settings = load_antigravity_settings()
+        embed = render_antigravity_panel_embed(settings)
+        view = AntigravityControlView(self)
         await channel.send(embed=embed, view=view)
 
     async def run_scan_task(self, channel: discord.TextChannel, limit: int = 10):
@@ -362,7 +667,6 @@ class CareerOpsDiscordBot(commands.Bot):
             app_id = current_id + processed
             processed += 1
 
-            # Generar CV LaTeX y compilar PDF a 1 pagina
             tex_code, slug, _ = generate_tailored_cv(job, app_id)
             cand_slug = re.sub(r'[^a-zA-Z0-9]', '', PROFILE.get("full_name", "Candidate"))
             tex_file = OUTPUT_DIR / f"CV-{cand_slug}-{slug}.tex"
@@ -371,7 +675,6 @@ class CareerOpsDiscordBot(commands.Bot):
 
             await asyncio.to_thread(compile_pdf, tex_file, OUTPUT_DIR)
 
-            # Ejecutar postulacion en Playwright con cookies sincronizadas
             app_status = "Evaluated"
             proof_path = ""
             portal_type = "Corporativo"
@@ -381,7 +684,6 @@ class CareerOpsDiscordBot(commands.Bot):
                 proof_path = apply_res.get("proof", "")
                 portal_type = apply_res.get("portal_type", "Corporativo")
 
-            # Guardar reporte de evaluacion
             report_file = REPORTS_DIR / f"{app_id}-{slug}-{today_str}.md"
             report_content = f"""# Evaluation Report: #{app_id} - {job['company']} - {job['title']}
 
@@ -414,14 +716,12 @@ class CareerOpsDiscordBot(commands.Bot):
 """
             report_file.write_text(report_content, encoding="utf-8")
 
-            # Registrar fila en applications.md
             new_row = f"| {app_id} | {today_str} | {job['company']} | {job['title']} | {score}/5 | {app_status} | Yes | [{app_id}](../reports/{app_id}-{slug}-{today_str}.md) | Discord Command Center ({job.get('site', 'Web')}) |\n"
             with open(APPS_FILE, "a", encoding="utf-8") as f:
                 f.write(new_row)
 
             portal_name = "Indeed" if "indeed.com" in job.get("url", "") else ("LinkedIn" if "linkedin.com" in job.get("url", "") else ("Computrabajo" if "computrabajo.com" in job.get("url", "") else "Web"))
 
-            # Manejo segun estado
             if app_status == "Applied":
                 applied_count += 1
                 embed = discord.Embed(
@@ -444,7 +744,6 @@ class CareerOpsDiscordBot(commands.Bot):
                 if proof_obj and proof_obj.exists():
                     files.append(discord.File(str(proof_obj), filename=proof_obj.name))
 
-                # Notificar en #control-y-batches
                 await channel.send(embed=embed, files=files)
 
             elif app_status in ["CaptchaBlocked", "ExternalATS", "ExternalPending", "FormInProgress"]:
@@ -476,14 +775,11 @@ class CareerOpsDiscordBot(commands.Bot):
                 if pdf_file.exists():
                     files.append(discord.File(str(pdf_file), filename=pdf_file.name))
 
-                # Registrar view interactiva con boton link y boton de marcar como enviada
                 draft_view = ManualDraftView(app_id, job.get("url", ""))
 
-                # Enviar al canal dedicado #finalizacion-manual
                 target_manual_ch = self.manual_channel or channel
                 await target_manual_ch.send(embed=embed, files=files, view=draft_view)
 
-                # Notificacion concisa en #control-y-batches
                 await channel.send(
                     f"[Accion Manual #{app_id}] {job['company']} - {job['title']} enviada al canal #{target_manual_ch.name} para completar."
                 )
@@ -496,10 +792,8 @@ class CareerOpsDiscordBot(commands.Bot):
                 )
                 await channel.send(embed=embed)
 
-            # Pausa preventiva entre postulaciones
             await asyncio.sleep(3.5)
 
-        # Resumen final del lote
         summary_embed = discord.Embed(
             title="[Lote Completado]",
             description=(
@@ -512,6 +806,37 @@ class CareerOpsDiscordBot(commands.Bot):
             timestamp=datetime.now()
         )
         await channel.send(embed=summary_embed)
+
+    async def execute_antigravity_query(self, channel: discord.TextChannel, prompt: str, is_plan: bool = False, user: Optional[discord.User] = None):
+        """Ejecuta una consulta contra Antigravity CLI con la configuracion activa y envia la respuesta."""
+        settings = load_antigravity_settings()
+        cmd = build_agy_args(prompt, is_plan=is_plan, settings=settings)
+
+        mode_label = "PLANIFICACION (/plan)" if is_plan else "CONSULTA"
+        header = f"[{mode_label} ANTIGRAVITY | Modelo: {settings.get('model')} | Esfuerzo: {settings.get('effort')}]"
+
+        async with channel.typing():
+            try:
+                proc = await asyncio.create_subprocess_exec(
+                    *cmd,
+                    cwd=str(CAREER_OPS_DIR),
+                    stdout=asyncio.subprocess.PIPE,
+                    stderr=asyncio.subprocess.PIPE
+                )
+                stdout, stderr = await asyncio.wait_for(proc.communicate(), timeout=180.0)
+                out_text = stdout.decode("utf-8", errors="replace").strip()
+                err_text = stderr.decode("utf-8", errors="replace").strip()
+                response = out_text if out_text else (err_text if err_text else "[Sin respuesta de agy]")
+            except asyncio.TimeoutError:
+                response = "[Timeout] La ejecucion de Antigravity supero el limite de 180 segundos."
+            except Exception as e:
+                response = f"[Error al ejecutar agy]: {e}"
+
+        prefix = f"**{header}**\n\n"
+        full_text = prefix + response
+        chunks = split_message_chunks(full_text, max_len=1900)
+        for chunk in chunks:
+            await channel.send(chunk)
 
     async def on_message(self, message: discord.Message):
         if message.author.bot:
@@ -530,33 +855,66 @@ class CareerOpsDiscordBot(commands.Bot):
         await self.process_commands(message)
 
     async def handle_antigravity_chat(self, message: discord.Message):
-        """Ejecuta consultas directas con Antigravity CLI ('agy --print') y responde en el canal."""
-        prompt = message.content.strip()
-        if not prompt:
+        """Maneja mensajes, comandos de modelo/esfuerzo y /plan en #chat-antigravity."""
+        content = message.content.strip()
+        if not content:
             return
 
-        async with message.channel.typing():
-            try:
-                proc = await asyncio.create_subprocess_exec(
-                    "agy", "--print", prompt,
-                    cwd=str(CAREER_OPS_DIR),
-                    stdout=asyncio.subprocess.PIPE,
-                    stderr=asyncio.subprocess.PIPE
+        # Comando /plan o !plan
+        if content.startswith(("/plan", "!plan")):
+            parts = content.split(maxsplit=1)
+            if len(parts) < 2:
+                await message.reply(
+                    "**[Uso del comando /plan]**\n"
+                    "Debes indicar la tarea o instruccion a planificar detalladamente.\n\n"
+                    "Ejemplo: `/plan Disenar estrategia para vacantes de vision computacional en Jalisco`\n"
+                    "Tambien puedes pulsar el boton `[Planificar con /plan]` del panel superior."
                 )
-                stdout, stderr = await asyncio.wait_for(proc.communicate(), timeout=90.0)
-                out_text = stdout.decode("utf-8", errors="replace").strip()
-                err_text = stderr.decode("utf-8", errors="replace").strip()
+                return
+            plan_prompt = parts[1].strip()
+            await self.execute_antigravity_query(message.channel, plan_prompt, is_plan=True, user=message.author)
+            return
 
-                response = out_text if out_text else (err_text if err_text else "[Sin respuesta de agy]")
-            except asyncio.TimeoutError:
-                response = "[Timeout] La consulta a Antigravity supero el limite de 90 segundos."
-            except Exception as e:
-                response = f"[Error al ejecutar agy]: {e}"
+        # Comando /modelo o /model
+        if content.startswith(("/modelo", "!modelo", "/model", "!model")):
+            parts = content.split(maxsplit=1)
+            if len(parts) < 2:
+                m_list = "\n".join([f"- `{m}`" for m in VALID_MODELS])
+                await message.reply(f"**Modelos disponibles:**\n{m_list}\n\nUso: `/modelo <nombre_del_modelo>`")
+                return
+            new_model = parts[1].strip()
+            if new_model not in VALID_MODELS:
+                await message.reply(f"[Error] Modelo no reconocido. Opciones: {', '.join(VALID_MODELS)}")
+                return
+            settings = load_antigravity_settings()
+            settings["model"] = new_model
+            save_antigravity_settings(settings)
+            await message.reply(f"[OK] Modelo cambiado exitosamente a `{new_model}`.")
+            return
 
-        # Enviar respuesta en chunks
-        chunks = split_message_chunks(response, max_len=1900)
-        for chunk in chunks:
-            await message.reply(chunk)
+        # Comando /esfuerzo o /effort
+        if content.startswith(("/esfuerzo", "!esfuerzo", "/effort", "!effort")):
+            parts = content.split(maxsplit=1)
+            if len(parts) < 2:
+                await message.reply(f"**Niveles de esfuerzo:**\n{', '.join(VALID_EFFORTS)}\n\nUso: `/esfuerzo <nivel>`")
+                return
+            new_effort = parts[1].strip().lower()
+            if new_effort not in VALID_EFFORTS:
+                await message.reply(f"[Error] Nivel no reconocido. Opciones: {', '.join(VALID_EFFORTS)}")
+                return
+            settings = load_antigravity_settings()
+            settings["effort"] = new_effort
+            save_antigravity_settings(settings)
+            await message.reply(f"[OK] Nivel de esfuerzo cambiado exitosamente a `{new_effort}`.")
+            return
+
+        # Comando /panel o /ajustes o /config
+        if content in ("/panel", "!panel", "/ajustes", "!ajustes", "/config", "!config"):
+            await self.post_antigravity_panel(message.channel)
+            return
+
+        # Consulta conversacional regular
+        await self.execute_antigravity_query(message.channel, content, is_plan=False, user=message.author)
 
     async def handle_cv_generation(self, message: discord.Message):
         """Genera un CV adaptado de 1 pagina a partir de un enlace o texto de oferta."""
@@ -565,7 +923,6 @@ class CareerOpsDiscordBot(commands.Bot):
             return
 
         async with message.channel.typing():
-            # Detectar si es URL o texto
             url_match = re.search(r'https?://[^\s]+', text)
             job_url = url_match.group(0) if url_match else ""
 
@@ -584,7 +941,6 @@ class CareerOpsDiscordBot(commands.Bot):
                         if resp.status_code == 200:
                             from bs4 import BeautifulSoup
                             soup = BeautifulSoup(resp.text, "html.parser")
-                            # Intentar extraer titulo y empresa
                             h1 = soup.select_one("h1")
                             if h1:
                                 title = h1.get_text(strip=True)
@@ -592,10 +948,8 @@ class CareerOpsDiscordBot(commands.Bot):
                 except Exception as e:
                     logger.warning(f"Extraccion web de URL: {e}")
 
-            # Evaluar y calificar afinidad
             score, reason, qualifies = evaluate_job(title, company, description, location)
 
-            # Generar CV personalizado
             job_dict = {
                 "company": company,
                 "title": title,
