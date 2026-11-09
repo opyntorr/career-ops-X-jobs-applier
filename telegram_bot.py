@@ -566,8 +566,10 @@ async def run_pipeline_task(chat_id, context: ContextTypes.DEFAULT_TYPE, limit: 
 
         # Generar CV en LaTeX a 1 pagina
         tex_code, slug, _ = generate_tailored_cv(job, app_id)
-        tex_file = OUTPUT_DIR / f"CV-OmarPayan-{slug}.tex"
-        pdf_file = OUTPUT_DIR / f"CV-OmarPayan-{slug}.pdf"
+        from browser_session import PROFILE
+        cand_slug = re.sub(r'[^a-zA-Z0-9]', '', PROFILE.get("full_name", "Candidate"))
+        tex_file = OUTPUT_DIR / f"CV-{cand_slug}-{slug}.tex"
+        pdf_file = OUTPUT_DIR / f"CV-{cand_slug}-{slug}.pdf"
         tex_file.write_text(tex_code, encoding="utf-8")
         
         compiled = await asyncio.to_thread(compile_pdf, tex_file, OUTPUT_DIR)
@@ -591,7 +593,7 @@ async def run_pipeline_task(chat_id, context: ContextTypes.DEFAULT_TYPE, limit: 
 **Recommendation:** APPLY  
 **Status:** {app_status}  
 **Location:** {job['location']}  
-**PDF:** [CV-OmarPayan-{slug}.pdf](../output/CV-OmarPayan-{slug}.pdf)  
+**PDF:** [CV-{cand_slug}-{slug}.pdf](../output/CV-{cand_slug}-{slug}.pdf)  
 
 ---
 
@@ -604,12 +606,11 @@ async def run_pipeline_task(chat_id, context: ContextTypes.DEFAULT_TYPE, limit: 
 
 ## Block B: Match Analysis
 - {reason}
-- Formacion: B.S. en Ingenieria en Robotica y Sistemas Digitales (Tecnologico de Monterrey) con concentracion oficial en IA Avanzada.
-- Proyectos con socios formadores incluidos: OMRON (Automatizacion, ROS 2, Vision) e Intel (DigiMix Telemetria Embebida, PCB).
+- Formacion adaptada al perfil del candidato y experiencia registrada.
 
 ## Block C: Generated Files
-- TeX: `output/CV-OmarPayan-{slug}.tex`
-- PDF: `output/CV-OmarPayan-{slug}.pdf` (Pages: 1)
+- TeX: `output/CV-{cand_slug}-{slug}.tex`
+- PDF: `output/CV-{cand_slug}-{slug}.pdf` (Pages: 1)
 - Proof Screenshot: `output/proofs/proof-{app_id}.png`
 """
         report_file.write_text(report_content, encoding="utf-8")

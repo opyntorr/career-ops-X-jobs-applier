@@ -184,16 +184,23 @@ def generate_tailored_cv(job, app_id):
     if include_sepyc:
         sepyc_str = " \\par\\vspace{0.25em}\n    {\\bf Technical Accreditation in Microsoft Office (SEPyC Endorsed)} \\hfill 100 Hours Certified \\\\\n    Official State Education Certificate \\hfill Mazatlán, Sinaloa"
 
+    from browser_session import PROFILE
+    cand_name = PROFILE.get("full_name", "Candidato")
+    cand_email = PROFILE.get("email", "contacto@ejemplo.com")
+    cand_phone = PROFILE.get("phone_intl", PROFILE.get("phone", "+52 123 456 7890"))
+    cand_linkedin = PROFILE.get("linkedin", "linkedin.com")
+    cand_github = PROFILE.get("github", "github.com")
+
     tex = f"""\\documentclass{{resume}}
 
 \\begin{{document}}
 
 \\introduction[
-    fullname={{Christian Omar Payán Torróntegui}},
-    email={{omarpayant@gmail.com}},
-    phone={{+52 669 100 3234}},
-    linkedin={{linkedin.com/in/omarpayant/}},
-    github={{github.com/opyntorr}}
+    fullname={{{cand_name}}},
+    email={{{cand_email}}},
+    phone={{{cand_phone}}},
+    linkedin={{{cand_linkedin}}},
+    github={{{cand_github}}}
 ]
 
 \\summary{{Bilingual Robotics and Digital Systems Engineer graduated from Tecnológico de Monterrey with specialized concentration in Advanced Artificial Intelligence for Data Science. Solid hands-on expertise spanning {summary_focus}, ROS 2 simulation, embedded C/C++, and advanced additive prototyping. Proven track record collaborating with industry sponsors on real-world engineering deployments.}}
@@ -376,8 +383,9 @@ def main():
         
         # Generar código LaTeX adaptado
         tex_code, slug, comp_clean = generate_tailored_cv(job, app_id)
-        tex_file = OUTPUT_DIR / f"CV-OmarPayan-{slug}.tex"
-        pdf_file = OUTPUT_DIR / f"CV-OmarPayan-{slug}.pdf"
+        cand_slug = re.sub(r'[^a-zA-Z0-9]', '', PROFILE.get("full_name", "Candidate"))
+        tex_file = OUTPUT_DIR / f"CV-{cand_slug}-{slug}.tex"
+        pdf_file = OUTPUT_DIR / f"CV-{cand_slug}-{slug}.pdf"
         
         tex_file.write_text(tex_code, encoding="utf-8")
         
@@ -406,7 +414,7 @@ def main():
 **Recommendation:** APPLY  
 **Status:** {app_status}  
 **Location:** {job['location']}  
-**PDF:** [CV-OmarPayan-{slug}.pdf](../output/CV-OmarPayan-{slug}.pdf)  
+**PDF:** [CV-{cand_slug}-{slug}.pdf](../output/CV-{cand_slug}-{slug}.pdf)  
 
 ---
 
