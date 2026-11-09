@@ -347,12 +347,16 @@ if (saveReport) {
     const filename    = `${num}-${companySlug}-${today}.md`;
     const reportPath  = join(PATHS.reports, filename);
 
+    const urlMatch    = jdText.match(/URL:\s*(https?:\/\/[^\s\n]+)/i);
+    const extractedUrl = urlMatch ? urlMatch[1].trim() : '';
+
     const reportContent = `# Evaluation: ${company} — ${role}
 
 **Date:** ${today}
 **Archetype:** ${archetype}
 **Score:** ${score}/5
 **Legitimacy:** ${legitimacy}
+**URL:** ${extractedUrl}
 **PDF:** pending
 **Tool:** Ollama (${modelName})
 
