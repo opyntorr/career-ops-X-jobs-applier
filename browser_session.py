@@ -71,6 +71,18 @@ def load_profile():
 
 PROFILE = load_profile()
 
+def get_workday_password() -> str:
+    """Obtiene la contraseña estándar de Workday desde .env o variable de entorno."""
+    pwd = os.environ.get("WORKDAY_PASSWORD", "")
+    if not pwd:
+        env_file = CAREER_OPS_DIR / ".env"
+        if env_file.exists():
+            for line in env_file.read_text(encoding="utf-8").splitlines():
+                if line.startswith("WORKDAY_PASSWORD="):
+                    pwd = line.split("=", 1)[1].strip().strip('"').strip("'")
+                    break
+    return pwd
+
 def find_firefox_cookie_db():
     """Busca dinamicamente cookies.sqlite en los perfiles estandar de Firefox en Linux, macOS o Windows."""
     search_roots = [
@@ -386,6 +398,8 @@ async def handle_external_ats(page, dest_url, pdf_path, app_id, auto_submit, pro
         ats_type = "Ashby"
     elif "bamboohr.com" in curr_url:
         ats_type = "BambooHR"
+    elif "dayforcehcm.com" in curr_url or "dayforce" in curr_url:
+        ats_type = "Dayforce"
     elif "myworkdayjobs.com" in curr_url or "workday" in curr_url:
         ats_type = "Workday"
     elif "taleo.net" in curr_url:
@@ -501,10 +515,333 @@ async def handle_external_ats(page, dest_url, pdf_path, app_id, auto_submit, pro
         except Exception as e:
             print(f"  [ATS Externo] Aviso al procesar {ats_type}: {e}")
 
-    # 4. Nivel 2/3: Portales con Login / Workday / Taleo / Propietarios
+    # 4. Nivel 2: Ceridian Dayforce HCM (Watlow y similares)
+    if ats_type == "Dayforce":
+        return await handle_dayforce_flow(page, pdf_path, app_id, auto_submit, proof_path, result)
+
+    # 5. Nivel 3: Workday (Intel, Flex, NXP, Plexus y similares)
+    if ats_type == "Workday":
+        return await handle_workday_flow(page, pdf_path, app_id, auto_submit, proof_path, result)
+
+    # 6. Otros Portales Corporativos con Login (Taleo, SuccessFactors, Propietarios)
     await page.screenshot(path=str(proof_path))
     result["status"] = "ExternalPending"
     result["message"] = f"Portal corporativo ({ats_type}) detectado. Requiere acceso con cuenta corporativa."
+    return result
+
+async def handle_dayforce_flow(page, pdf_path, app_id, auto_submit, proof_path, result):
+    """Automatiza el flujo de Ceridian Dayforce HCM (Watlow) utilizando el acceso directo de candidato invitado."""
+    print("  [Dayforce Engine] Iniciando postulación en Ceridian Dayforce...")
+    result["portal_type"] = "Dayforce"
+    try:
+        # 1. Clic en Postularse
+        apply_btn = page.locator("button[test-id='apply-button'], button:has-text('Postularse'), a:has-text('Postularse'), button:has-text('Apply'), a:has-text('Apply')").first
+        if await apply_btn.is_visible():
+            await apply_btn.click(force=True)
+            await page.wait_for_timeout(3000)
+
+        # Aceptar cookies de Dayforce si aparecen
+        cookie_btn = page.locator("button[test-id='cookie-preferences-banner-accept-button'], button:has-text('Aceptar')").first
+        if await cookie_btn.is_visible():
+            try: await cookie_btn.click(force=True)
+            except Exception: pass
+            await page.wait_for_timeout(1000)
+
+        # 2. Clic en 'Postularse sin una cuenta' (Guest flow sin login requerido)
+        guest_btn = page.locator("button[test-id='apply-without-account'], button:has-text('Postularse sin una cuenta'), button:has-text('Apply without an account')").first
+        if await guest_btn.is_visible():
+            await guest_btn.click(force=True)
+            await page.wait_for_timeout(3500)
+
+        # 3. Subir CV adaptado
+        if pdf_path and Path(pdf_path).exists():
+            file_inp = page.locator("input[type='file'][name*='resume' i], input[name='jobPostingApplication_files_resume']").first
+            if await file_inp.count() > 0:
+                print(f"  [Dayforce Engine] Adjuntando CV adaptado: {Path(pdf_path).name}...")
+                await file_inp.set_input_files(str(pdf_path))
+                await page.wait_for_timeout(3000)
+
+        # 4. Llenar campos de contacto
+        for sel, val in [
+            ("input[name='jobPostingApplication_personalInfo_firstName']", PROFILE.get("first_name", "Christian Omar")),
+            ("input[name='jobPostingApplication_personalInfo_lastName']", PROFILE.get("last_name", "Payán Torróntegui")),
+            ("input[name='jobPostingApplication_personalInfo_email']", PROFILE.get("email", "omarpayant@gmail.com")),
+            ("input[name='jobPostingApplication_personalInfo_confirmEmail']", PROFILE.get("email", "omarpayant@gmail.com")),
+            ("input[name='jobPostingApplication_personalInfo_phone']", PROFILE.get("phone", "6691003234")),
+            ("input[name='jobPostingApplication_personalInfo_city']", PROFILE.get("city", "Guadalajara")),
+            ("input[name='jobPostingApplication_personalInfo_linkedInURL']", PROFILE.get("linkedin", "linkedin.com/in/omarpayant/"))
+        ]:
+            inp = page.locator(sel).first
+            if await inp.is_visible():
+                await inp.fill(val)
+
+        # Guardar seccion de informacion personal si existe boton Actualizar
+        update_btn = page.locator("button[name='personal-info-update-button'], button:has-text('Actualizar')").first
+        if await update_btn.is_visible():
+            try:
+                await update_btn.click(force=True)
+                await page.wait_for_timeout(1500)
+            except Exception:
+                pass
+
+        # 5. Comprobar reto de seguridad
+        challenge = await detect_security_challenge(page)
+        if challenge:
+            await page.screenshot(path=str(proof_path))
+            result["status"] = "CaptchaBlocked"
+            result["message"] = f"Comprobación de seguridad ({challenge}) en formulario de Dayforce."
+            return result
+
+        # 6. Siguiente / Confirmar
+        next_btn = page.locator("button[name='application-next-step'], button:has-text('Siguiente'), button:has-text('Next')").first
+        if await next_btn.is_visible():
+            await next_btn.click(force=True)
+            await page.wait_for_timeout(3000)
+
+        await page.screenshot(path=str(proof_path))
+        if auto_submit:
+            submit_btn = page.locator("button:has-text('Enviar'), button:has-text('Submit Application'), button:has-text('Submit')").first
+            if await submit_btn.is_visible():
+                await submit_btn.click(force=True)
+                await page.wait_for_timeout(4000)
+                await page.screenshot(path=str(proof_path))
+                result["status"] = "Applied"
+                result["message"] = "Postulación enviada exitosamente en Dayforce."
+                print("  [Dayforce Engine] Solicitud completada exitosamente en Dayforce.")
+                return result
+
+        result["status"] = "ExternalPending"
+        result["message"] = "Formulario completado en Dayforce con CV cargado; listo para confirmación en portal."
+        return result
+    except Exception as e:
+        print(f"  [Dayforce Engine] Aviso al procesar Dayforce: {e}")
+        await page.screenshot(path=str(proof_path))
+        result["status"] = "ExternalPending"
+        result["message"] = f"Portal Dayforce procesado con datos cargados ({str(e)[:60]})."
+        return result
+
+async def handle_workday_flow(page, pdf_path, app_id, auto_submit, proof_path, result):
+    """Automatiza el flujo completo de postulación en Workday (Autofill with Resume, login/registro y envío)."""
+    print("  [Workday Engine] Iniciando postulación automatizada en Workday...")
+    result["portal_type"] = "Workday"
+    
+    # 1. Aceptar banner de cookies si está presente
+    try:
+        cookie_btn = page.locator("[data-automation-id='legalNoticeAcceptButton'], button:has-text('Accept Cookies')").first
+        if await cookie_btn.is_visible():
+            await cookie_btn.click()
+            await page.wait_for_timeout(1000)
+    except Exception:
+        pass
+
+    # 2. Localizar y pulsar botón Apply / Postularse
+    try:
+        apply_btn = page.locator("[data-automation-id='adventureButton'], [data-automation-id='applyButton'], button:has-text('Apply'), a:has-text('Apply'), button:has-text('Postularse'), a:has-text('Postularse')").first
+        if await apply_btn.is_visible():
+            await apply_btn.click()
+            await page.wait_for_timeout(2500)
+    except Exception as e:
+        print(f"  [Workday Engine] Aviso en clic de Apply: {e}")
+
+    # 3. Seleccionar 'Autofill with Resume' o 'Apply Manually'
+    try:
+        autofill_btn = page.locator("[data-automation-id='autofillWithResume'], [data-automation-id='applyManually']").first
+        if await autofill_btn.is_visible():
+            await autofill_btn.click()
+            await page.wait_for_timeout(3500)
+    except Exception as e:
+        print(f"  [Workday Engine] Aviso al seleccionar modo de postulación: {e}")
+
+    # 4. Comprobar si ya se ha postulado previamente a esta vacante
+    try:
+        body_text = await page.locator("body").inner_text()
+        if any(w in body_text.lower() for w in ["already applied", "ya te has postulado", "ya te habías postulado"]):
+            await page.screenshot(path=str(proof_path))
+            result["status"] = "Applied"
+            result["message"] = "Postulación previa confirmada en Workday."
+            print("  [Workday Engine] El candidato ya se había postulado previamente a esta vacante en Workday.")
+            return result
+    except Exception:
+        pass
+
+    # 5. Gestión de Autenticación: Sign In o Create Account
+    workday_pwd = get_workday_password()
+    user_email = PROFILE.get("email", "omarpayant@gmail.com")
+
+    # Intentar Sign In primero si está disponible
+    sign_in_link = page.locator("[data-automation-id='signInLink']").first
+    if await sign_in_link.is_visible():
+        try:
+            print("  [Workday Engine] Cambiando a vista de Sign In...")
+            await sign_in_link.click()
+            await page.wait_for_timeout(1500)
+        except Exception:
+            pass
+
+    email_inp = page.locator("[data-automation-id='email'], input[type='email']").first
+    pwd_inp = page.locator("[data-automation-id='password'], input[type='password']").first
+    sign_in_submit = page.locator("[data-automation-id='signInSubmitButton']").first
+
+    if await email_inp.is_visible() and await pwd_inp.is_visible():
+        print(f"  [Workday Engine] Autenticando con cuenta Workday ({user_email})...")
+        await email_inp.fill(user_email)
+        await pwd_inp.fill(workday_pwd)
+        await page.wait_for_timeout(500)
+        
+        if await sign_in_submit.is_visible():
+            await sign_in_submit.click(force=True)
+            await page.wait_for_timeout(5000)
+
+        # Comprobar si tras login indica que ya se postuló
+        body_after_login = await page.locator("body").inner_text()
+        if any(w in body_after_login.lower() for w in ["already applied", "ya te has postulado"]):
+            await page.screenshot(path=str(proof_path))
+            result["status"] = "Applied"
+            result["message"] = "Postulación previa detectada en Workday tras inicio de sesión."
+            print("  [Workday Engine] Postulación previa confirmada tras login en Workday.")
+            return result
+
+        # Si aparece mensaje de error de credenciales ("invalid user name or password"), registrar cuenta
+        error_msg = page.locator("[data-automation-id='errorMessage'], [role='alert']").first
+        if await error_msg.is_visible():
+            print("  [Workday Engine] Cuenta no existente en este tenant. Registrando nueva cuenta...")
+            create_link = page.locator("[data-automation-id='createAccountLink'], [data-automation-id='createAccountSubmitButton']").first
+            if await create_link.is_visible():
+                await create_link.click(force=True)
+                await page.wait_for_timeout(2000)
+
+            email_reg = page.locator("[data-automation-id='email']").first
+            pwd_reg = page.locator("[data-automation-id='password']").first
+            pwd_conf = page.locator("[data-automation-id='verifyPassword']").first
+            terms_chk = page.locator("[data-automation-id='createAccountCheckbox'], input[type='checkbox']").first
+            reg_submit = page.locator("[data-automation-id='createAccountSubmitButton']").first
+
+            if await email_reg.is_visible():
+                await email_reg.fill(user_email)
+                await pwd_reg.fill(workday_pwd)
+                if await pwd_conf.is_visible():
+                    await pwd_conf.fill(workday_pwd)
+                if await terms_chk.is_visible():
+                    try: await terms_chk.check(force=True)
+                    except Exception: pass
+                if await reg_submit.is_visible():
+                    await reg_submit.click(force=True)
+                    await page.wait_for_timeout(5000)
+
+    # 6. Comprobar si se requiere código OTP o verificación por correo
+    otp_inp = page.locator("[data-automation-id='verificationCode'], input[name*='verification' i]").first
+    if await otp_inp.is_visible():
+        print("  [Workday Engine] Código de verificación de correo requerido por Workday...")
+        await page.screenshot(path=str(proof_path))
+        result["status"] = "ExternalPending"
+        result["message"] = "Workday ha enviado un código de verificación a tu correo para activar la cuenta en este portal."
+        return result
+
+    # 7. Subida de CV Adaptado (Paso 1: Autofill with Resume)
+    try:
+        file_input = page.locator("input[type='file'], [data-automation-id='file-upload-dropzone'] input[type='file']").first
+        if await file_input.count() > 0 and pdf_path and Path(pdf_path).exists():
+            print(f"  [Workday Engine] Subiendo CV adaptado: {Path(pdf_path).name}...")
+            await file_input.set_input_files(str(pdf_path))
+            await page.wait_for_timeout(4000)
+            
+            # Clic en Continue / Siguiente
+            continue_btn = page.locator("[data-automation-id='pageFooterNextButton'], [data-automation-id='bottom-navigation-next-button'], button:has-text('Continue'), button:has-text('Continuar')").first
+            if await continue_btn.is_visible():
+                await continue_btn.click(force=True)
+                await page.wait_for_timeout(5000)
+    except Exception as e:
+        print(f"  [Workday Engine] Aviso al adjuntar CV: {e}")
+
+    # 8. Iterar a través de los pasos del formulario de Workday (Información, Experiencia, Preguntas, Declaraciones)
+    max_steps = 7
+    for step_num in range(1, max_steps + 1):
+        try:
+            curr_text = await page.locator("body").inner_text()
+            print(f"  [Workday Engine] Procesando paso {step_num} de la solicitud...")
+
+            # Campos de texto personales si no están poblados
+            fn_inp = page.locator("[data-automation-id='legalNameSection_firstName']").first
+            if await fn_inp.is_visible():
+                val = await fn_inp.input_value()
+                if not val:
+                    await fn_inp.fill(PROFILE.get("first_name", "Christian Omar"))
+
+            ln_inp = page.locator("[data-automation-id='legalNameSection_lastName']").first
+            if await ln_inp.is_visible():
+                val = await ln_inp.input_value()
+                if not val:
+                    await ln_inp.fill(PROFILE.get("last_name", "Payán Torróntegui"))
+
+            ph_inp = page.locator("[data-automation-id='phone-number']").first
+            if await ph_inp.is_visible():
+                val = await ph_inp.input_value()
+                if not val:
+                    await ph_inp.fill(PROFILE.get("phone", "6691003234"))
+
+            addr_inp = page.locator("[data-automation-id='addressSection_addressLine1']").first
+            if await addr_inp.is_visible():
+                val = await addr_inp.input_value()
+                if not val:
+                    await addr_inp.fill(PROFILE.get("city", "Guadalajara"))
+
+            city_inp = page.locator("[data-automation-id='addressSection_city']").first
+            if await city_inp.is_visible():
+                val = await city_inp.input_value()
+                if not val:
+                    await city_inp.fill("Guadalajara")
+
+            # Preguntas de autorización de trabajo y visa
+            for radio_yes in await page.locator("input[type='radio'][value*='yes' i], input[type='radio'][id*='yes' i]").all():
+                try:
+                    lbl = await radio_yes.evaluate("el => el.labels && el.labels[0] ? el.labels[0].innerText : ''")
+                    if any(w in lbl.lower() for w in ["legal", "authorized", "derecho"]):
+                        await radio_yes.check(force=True)
+                except Exception:
+                    pass
+
+            for radio_no in await page.locator("input[type='radio'][value*='no' i], input[type='radio'][id*='no' i]").all():
+                try:
+                    lbl = await radio_no.evaluate("el => el.labels && el.labels[0] ? el.labels[0].innerText : ''")
+                    if any(w in lbl.lower() for w in ["sponsor", "visa", "patrocinio"]):
+                        await radio_no.check(force=True)
+                except Exception:
+                    pass
+
+            # Detectar si estamos en el paso final de Revisión / Review
+            is_review = "review" in curr_text.lower() or await page.locator("button:has-text('Submit'), button:has-text('Enviar')").count() > 0
+            if is_review:
+                await page.screenshot(path=str(proof_path))
+                if auto_submit:
+                    submit_final = page.locator("[data-automation-id='pageFooterNextButton'], button:has-text('Submit'), button:has-text('Enviar')").first
+                    if await submit_final.is_visible():
+                        print("  [Workday Engine] Enviando postulación definitiva...")
+                        await submit_final.click(force=True)
+                        await page.wait_for_timeout(5000)
+                        await page.screenshot(path=str(proof_path))
+                        result["status"] = "Applied"
+                        result["message"] = "Postulación enviada exitosamente en Workday."
+                        print("  [Workday Engine] Postulación enviada exitosamente en Workday.")
+                        return result
+
+                result["status"] = "ExternalPending"
+                result["message"] = "Formulario completado en Workday con CV adaptado; listo para envío final."
+                return result
+
+            # Avanzar al siguiente paso
+            next_btn = page.locator("[data-automation-id='pageFooterNextButton'], [data-automation-id='bottom-navigation-next-button'], button:has-text('Continue'), button:has-text('Next'), button:has-text('Siguiente')").first
+            if await next_btn.is_visible():
+                await next_btn.click(force=True)
+                await page.wait_for_timeout(3500)
+            else:
+                break
+        except Exception as e:
+            print(f"  [Workday Engine] Aviso en paso {step_num}: {e}")
+            break
+
+    await page.screenshot(path=str(proof_path))
+    result["status"] = "ExternalPending"
+    result["message"] = "Flujo de Workday procesado con datos cargados; listo para revisión final."
     return result
 
 async def apply_to_job(job_url, pdf_path, job_id, auto_submit=True):
