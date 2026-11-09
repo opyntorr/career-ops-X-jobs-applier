@@ -147,7 +147,29 @@ def is_known_brand_company(company):
     comp_clean = re.sub(r'[^a-zA-Z0-9 ]', '', str(company)).lower()
     return any(kc in comp_clean for kc in KNOWN_TIER_COMPANIES)
 
+def has_visa_or_us_labor_veto(title, company, description, location):
+    """Veto estricto: descarta puestos que requieran Visa TN, empleo en EE.UU. o labores de campo/produccion avicola."""
+    full_text = f"{title} {company} {description} {location}".lower()
+    veto_terms = [
+        "visa tn", "tn visa", "visa de trabajo", "h-1b", "h1b", "green card",
+        "us citizen", "autorización para trabajar en usa", "autorizacion para trabajar en usa",
+        "autorización para trabajar en estados unidos", "autorizacion para trabajar en estados unidos",
+        "work authorization in us", "trabajar en usa", "trabajo en usa", "en usa con visa",
+        "reubicación a usa", "reubicacion a usa", "reubicación a estados unidos", "reubicacion a estados unidos",
+        "producción de huevo", "produccion de huevo", "campo agrícola", "campo agricola",
+        "granja avícola", "granja avicola", "pizca", "cosecha"
+    ]
+    for term in veto_terms:
+        if term in full_text:
+            return True, term
+    return False, ""
+
 def evaluate_job(title, company, description, location):
+    # Veto estricto inmediato: Visa TN / empleo en USA / labores agricolas
+    is_vetoed, veto_term = has_visa_or_us_labor_veto(title, company, description, location)
+    if is_vetoed:
+        return 1.0, f"Veto estricto detectado ('{veto_term}'): Requiere Visa TN / trabajo en EE.UU. o labor de campo/producción avícola no deseada.", False
+
     t_lower = (title + " " + description).lower()
     senior_triggers = ["senior", "sr.", "sr ", "lead", "director", "principal", "manager", "staff engineer"]
     title_lower = title.lower()
@@ -504,8 +526,8 @@ def main():
 - Proyectos con socios formadores incluidos: OMRON (Automatización, ROS 2, Visión) e Intel (DigiMix Telemetría Embebida, PCB).
 
 ## Block C: Generated Files
-- TeX: `output/CV-OmarPayan-{slug}.tex`
-- PDF: `output/CV-OmarPayan-{slug}.pdf` (Pages: 1)
+- TeX: `output/CV-{cand_slug}-{slug}.tex`
+- PDF: `output/CV-{cand_slug}-{slug}.pdf` (Pages: 1)
 - Proof Screenshot: `output/proofs/proof-{app_id}.png`
 """
         report_file.write_text(report_content, encoding="utf-8")

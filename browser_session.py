@@ -277,6 +277,213 @@ async def detect_security_challenge(page):
         pass
     return None
 
+async def sync_computrabajo_tailored_cv(page, pdf_path):
+    """Sincroniza el CV personalizado en Computrabajo con politica FIFO (max 9-10 archivos)."""
+    if not pdf_path or not Path(pdf_path).exists():
+        return False
+        
+    print(f"  [Computrabajo FIFO] Sincronizando CV personalizado ({Path(pdf_path).name}) en perfil candidato...")
+    try:
+        await page.goto("https://candidato.computrabajo.com/curriculum", wait_until="domcontentloaded", timeout=18000)
+        await page.wait_for_timeout(2500)
+        
+        if "candidato.computrabajo.com" not in page.url and "login" in page.url:
+            print("  [Computrabajo FIFO] Sesión no autenticada en portal candidato.")
+            return False
+
+        # Contar CVs adjuntos existentes mediante botones de eliminar
+        del_buttons = await page.locator("a.js-del-cv, button[data-action='delete'], a:has-text('Eliminar'), button:has-text('Eliminar'), .icon-trash, a[title*='Eliminar']").all()
+        cv_count = len(del_buttons)
+        print(f"  [Computrabajo FIFO] Archivos de CV encontrados en cuenta: {cv_count}")
+
+        # Politica FIFO: Si hay 9 o mas CVs, eliminar el mas antiguo (el ultimo de la lista)
+        while cv_count >= 9 and len(del_buttons) > 0:
+            oldest_btn = del_buttons[-1]
+            if await oldest_btn.is_visible():
+                print("  [Computrabajo FIFO] Capacidad maxima cercana (>=9). Eliminando el CV mas antiguo...")
+                await oldest_btn.click()
+                await page.wait_for_timeout(1000)
+                
+                confirm_btn = page.locator("button:has-text('Sí, eliminar'), button:has-text('Si, eliminar'), button:has-text('Eliminar'), a:has-text('Aceptar'), .b_primary:has-text('Eliminar')").first
+                if await confirm_btn.is_visible():
+                    await confirm_btn.click()
+                    await page.wait_for_timeout(2000)
+            
+            del_buttons = await page.locator("a.js-del-cv, button[data-action='delete'], a:has-text('Eliminar'), button:has-text('Eliminar'), .icon-trash, a[title*='Eliminar']").all()
+            cv_count = len(del_buttons)
+
+        # Subir el nuevo CV personalizado
+        file_input = page.locator("input[type='file']").first
+        if await file_input.count() > 0:
+            await file_input.set_input_files(str(pdf_path))
+            print(f"  [Computrabajo FIFO] Subido nuevo PDF: {Path(pdf_path).name}")
+            await page.wait_for_timeout(3000)
+
+            upload_submit = page.locator("input[value*='Subir'], button:has-text('Subir CV'), button:has-text('Guardar'), button:has-text('Añadir')").first
+            if await upload_submit.is_visible():
+                await upload_submit.click()
+                await page.wait_for_timeout(2500)
+
+            # Marcar como CV principal si hay selector de radio
+            main_radio = page.locator("input[type='radio'][name*='default'], input[type='radio'][name*='principal'], input[type='radio'][name*='cv']").first
+            if await main_radio.is_visible():
+                try:
+                    await main_radio.check()
+                    print("  [Computrabajo FIFO] Marcado como CV Principal.")
+                except Exception:
+                    pass
+
+            return True
+        else:
+            print("  [Computrabajo FIFO] No se localizó input de archivo en /curriculum; continuando...")
+            return False
+    except Exception as e:
+        print(f"  [Computrabajo FIFO] Aviso en sincronización: {e}")
+        return False
+
+async def handle_external_ats(page, dest_url, pdf_path, app_id, auto_submit, proof_path, result):
+    """Gestiona la postulación en portales corporativos externos (Nivel 1 automático o Nivel 2/3 asistido)."""
+    curr_url = page.url.lower()
+    print(f"  [ATS Externo] Analizando portal de destino: {curr_url[:80]}...")
+    await page.wait_for_timeout(2500)
+
+    # 1. Comprobar reto de seguridad
+    challenge = await detect_security_challenge(page)
+    if challenge:
+        await page.screenshot(path=str(proof_path))
+        result["status"] = "CaptchaBlocked"
+        result["message"] = f"Comprobación de seguridad ({challenge}) en portal corporativo."
+        return result
+
+    # 2. Identificar el tipo de ATS
+    ats_type = "Corporativo"
+    if "greenhouse.io" in curr_url or "gh_src" in curr_url or await page.locator("form#application_form, [data-mapped='greenhouse']").count() > 0:
+        ats_type = "Greenhouse"
+    elif "lever.co" in curr_url or await page.locator(".application-form, .lever-application").count() > 0:
+        ats_type = "Lever"
+    elif "ashbyhq.com" in curr_url or await page.locator("[data-ashby]").count() > 0:
+        ats_type = "Ashby"
+    elif "bamboohr.com" in curr_url:
+        ats_type = "BambooHR"
+    elif "myworkdayjobs.com" in curr_url or "workday" in curr_url:
+        ats_type = "Workday"
+    elif "taleo.net" in curr_url:
+        ats_type = "Taleo"
+    elif "successfactors" in curr_url:
+        ats_type = "SuccessFactors"
+    elif "smartrecruiters" in curr_url:
+        ats_type = "SmartRecruiters"
+
+    print(f"  [ATS Externo] Tipo de ATS detectado: {ats_type}")
+    result["portal_type"] = ats_type
+
+    # 3. Nivel 1: ATS Publicos de 1 pagina sin login (Greenhouse, Lever, Ashby, BambooHR)
+    if ats_type in ["Greenhouse", "Lever", "Ashby", "BambooHR"]:
+        try:
+            print(f"  [ATS Externo] Intentando postulación automática en {ats_type}...")
+            # Llenar Nombre y Apellido
+            for fn in ["#first_name", "input[name*='first_name' i]", "input[name*='firstName' i]", "input[id*='first_name' i]"]:
+                loc = page.locator(fn).first
+                if await loc.is_visible():
+                    await loc.fill(PROFILE.get("first_name", ""))
+                    break
+            
+            for ln in ["#last_name", "input[name*='last_name' i]", "input[name*='lastName' i]", "input[id*='last_name' i]"]:
+                loc = page.locator(ln).first
+                if await loc.is_visible():
+                    await loc.fill(PROFILE.get("last_name", ""))
+                    break
+
+            for nm in ["input[name='name']", "input[name='candidate_name']", "#name"]:
+                loc = page.locator(nm).first
+                if await loc.is_visible():
+                    await loc.fill(PROFILE.get("full_name", ""))
+                    break
+
+            # Llenar Email
+            for em in ["#email", "input[type='email']", "input[name*='email' i]"]:
+                loc = page.locator(em).first
+                if await loc.is_visible():
+                    await loc.fill(PROFILE.get("email", ""))
+                    break
+
+            # Llenar Telefono
+            for ph in ["#phone", "input[type='tel']", "input[name*='phone' i]"]:
+                loc = page.locator(ph).first
+                if await loc.is_visible():
+                    await loc.fill(PROFILE.get("phone_intl", PROFILE.get("phone", "")))
+                    break
+
+            # Llenar URLs (LinkedIn / GitHub)
+            for li in ["input[name*='linkedin' i]", "input[id*='linkedin' i]", "input[name*='urls[LinkedIn]']"]:
+                loc = page.locator(li).first
+                if await loc.is_visible():
+                    await loc.fill(PROFILE.get("linkedin", ""))
+                    break
+
+            for gh in ["input[name*='github' i]", "input[id*='github' i]", "input[name*='urls[GitHub]']"]:
+                loc = page.locator(gh).first
+                if await loc.is_visible():
+                    await loc.fill(PROFILE.get("github", ""))
+                    break
+
+            # Subir Curriculum en PDF
+            if pdf_path and Path(pdf_path).exists():
+                file_input = page.locator("input[type='file'][name*='resume' i], input[type='file'][id*='resume' i], input[type='file']").first
+                if await file_input.count() > 0:
+                    await file_input.set_input_files(str(pdf_path))
+                    print(f"  [ATS Externo] CV adjuntado a {ats_type}: {Path(pdf_path).name}")
+                    await page.wait_for_timeout(2000)
+
+            # Responder textareas adicionales con IA contextual
+            for ta in await page.locator("textarea").all():
+                if await ta.is_visible():
+                    q_lbl = ""
+                    try:
+                        q_lbl = await ta.evaluate("(el) => el.labels && el.labels[0] ? el.labels[0].innerText : ''")
+                    except Exception:
+                        pass
+                    if not q_lbl:
+                        try: q_lbl = await ta.locator("..").inner_text()
+                        except Exception: q_lbl = "Experiencia y motivacion para el puesto"
+                    ans = await generate_contextual_answer(q_lbl, max_chars=400, job_context=curr_url)
+                    await ta.fill(ans)
+
+            # Comprobar CAPTCHA antes de enviar
+            challenge = await detect_security_challenge(page)
+            if challenge:
+                await page.screenshot(path=str(proof_path))
+                result["status"] = "CaptchaBlocked"
+                result["message"] = f"Comprobación de seguridad ({challenge}) en formulario de {ats_type}."
+                return result
+
+            # Enviar formulario si auto_submit esta activado
+            if auto_submit:
+                sub_btn = page.locator("#submit_app, button[type='submit'], input[type='submit'], button:has-text('Submit Application'), button:has-text('Enviar postulación'), button:has-text('Postularme')").first
+                if await sub_btn.is_visible():
+                    await sub_btn.click()
+                    await page.wait_for_timeout(4500)
+                    await page.screenshot(path=str(proof_path))
+                    
+                    if any(t in page.url.lower() for t in ["confirmation", "thank", "gracias", "applied", "success"]) or await page.locator("text='Application Submitted', text='Gracias por postularte', text='Thank you'").count() > 0:
+                        result["status"] = "Applied"
+                        result["message"] = f"Postulación enviada exitosamente en ATS externo ({ats_type})."
+                        print(f"  [ATS Externo] Postulación enviada exitosamente en {ats_type}.")
+                        return result
+
+            await page.screenshot(path=str(proof_path))
+            result["status"] = "ExternalPending"
+            result["message"] = f"Formulario completado en {ats_type}; listo para confirmación en portal."
+            return result
+        except Exception as e:
+            print(f"  [ATS Externo] Aviso al procesar {ats_type}: {e}")
+
+    # 4. Nivel 2/3: Portales con Login / Workday / Taleo / Propietarios
+    await page.screenshot(path=str(proof_path))
+    result["status"] = "ExternalPending"
+    result["message"] = f"Portal corporativo ({ats_type}) detectado. Requiere acceso con cuenta corporativa."
+    return result
+
 async def apply_to_job(job_url, pdf_path, job_id, auto_submit=True):
     """Navega a la vacante con la sesión de Firefox, llena el formulario y sube el CV personalizado."""
     if not STORAGE_STATE_FILE.exists():
@@ -457,13 +664,18 @@ async def apply_to_job(job_url, pdf_path, job_id, auto_submit=True):
                                 result["status"] = "FormInProgress"
                                 result["message"] = "Formulario abierto en LinkedIn; requiere atención en preguntas personalizadas."
                     else:
-                        await page.screenshot(path=str(proof_path))
-                        result["status"] = "ExternalATS"
-                        result["message"] = "Redirección a portal corporativo."
+                        print("  [Navegador] Enlace de solicitud externa detectado en LinkedIn. Intentando procesar ATS...")
+                        await handle_external_ats(page, page.url, pdf_path, job_id, auto_submit, proof_path, result)
                 else:
-                    await page.screenshot(path=str(proof_path))
-                    result["status"] = "ExternalATS"
-                    result["message"] = "Redirección a portal corporativo."
+                    print("  [Navegador] Botón de solicitud externa detectado en LinkedIn...")
+                    ext_btn = page.locator("button:has-text('Solicitar'), a:has-text('Solicitar'), button:has-text('Apply'), a:has-text('Apply')").first
+                    if await ext_btn.is_visible():
+                        try:
+                            async with page.expect_navigation(timeout=10000):
+                                await ext_btn.click()
+                        except Exception:
+                            pass
+                    await handle_external_ats(page, page.url, pdf_path, job_id, auto_submit, proof_path, result)
 
             # --- CASO B: INDEED ---
             elif "indeed.com" in job_url:
@@ -624,18 +836,31 @@ async def apply_to_job(job_url, pdf_path, job_id, auto_submit=True):
                         else:
                             await page.screenshot(path=str(proof_path))
                             if "indeed.com" not in page.url and "smartapply" not in page.url:
-                                result["status"] = "ExternalATS"
-                                result["message"] = "Redirección a portal corporativo externo."
+                                print("  [Navegador] Indeed redirigió a ATS externo. Analizando portal...")
+                                await handle_external_ats(page, page.url, pdf_path, job_id, auto_submit, proof_path, result)
                             else:
                                 result["status"] = "FormInProgress"
                                 result["message"] = "Formulario en Indeed requiere revisión de preguntas."
                 else:
-                    await page.screenshot(path=str(proof_path))
-                    result["status"] = "ExternalATS"
-                    result["message"] = "Redirección a portal corporativo."
+                    print("  [Navegador] Botón de postulación externa detectado en Indeed...")
+                    ext_btn = page.locator("button:has-text('sitio de la empresa'), a:has-text('sitio de la empresa'), button:has-text('Apply on company site'), a:has-text('Apply on company site')").first
+                    if await ext_btn.is_visible():
+                        try:
+                            async with page.expect_navigation(timeout=10000):
+                                await ext_btn.click()
+                        except Exception:
+                            pass
+                    await handle_external_ats(page, page.url, pdf_path, job_id, auto_submit, proof_path, result)
 
             # --- CASO C: COMPUTRABAJO ---
             elif "computrabajo.com" in job_url:
+                # Sincronizar CV personalizado con politica FIFO antes de postular
+                if pdf_path and Path(pdf_path).exists():
+                    await sync_computrabajo_tailored_cv(page, pdf_path)
+                    print(f"  [Navegador] Retornando a la vacante: {job_url[:65]}...")
+                    await page.goto(job_url, wait_until="domcontentloaded", timeout=25000)
+                    await page.wait_for_timeout(2500)
+
                 apply_btn = page.locator("#send_cv, a.js-apply, button.js-apply, a:has-text('Postularme'), button:has-text('Postularme'), a.b_primary:has-text('Postularme')").first
                 if await apply_btn.is_visible():
                     print("  [Navegador] Detectado Computrabajo. Iniciando envío...")
@@ -726,13 +951,10 @@ async def apply_to_job(job_url, pdf_path, job_id, auto_submit=True):
                         print("  [Navegador] Solicitud completada exitosamente en Computrabajo.")
                 else:
                     await page.screenshot(path=str(proof_path))
-                    result["status"] = "ExternalATS"
-                    result["message"] = "Redirección a portal corporativo o vacante cerrada."
+                    await handle_external_ats(page, page.url, pdf_path, job_id, auto_submit, proof_path, result)
 
             else:
-                await page.screenshot(path=str(proof_path))
-                result["status"] = "ExternalATS"
-                result["message"] = "Portal corporativo propio."
+                await handle_external_ats(page, job_url, pdf_path, job_id, auto_submit, proof_path, result)
                 
         except Exception as e:
             result["status"] = "Error"
