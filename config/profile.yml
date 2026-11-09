@@ -106,12 +106,15 @@ narrative:
     wildcard_assistant_experience: true
     wildcard_assistant_rule: "La experiencia laboral en Tecnológico de Monterrey — Advanced Manufacturing Laboratory se usa como comodín técnico adaptable al rol (software, datos, IA, automatización, diseño CAD, robótica, simulación, etc.), manteniendo siempre 'Assistant' / 'Asistente' en el título del puesto (ej. AI & Automation Assistant, Software Development Assistant, Mechanical Design Assistant)."
     academic_partner_rule: "Para proyectos académicos que cuenten con socio formador (ej. OMRON en Port Automation, Intel en DigiMix), colocar siempre el nombre del socio formador en negritas y alineado a la derecha en el encabezado (\\hfill \\textbf{Socio Formador})."
+    min_foraneo_salary_mxn: 18000
+    foraneo_mazatlan_filter: "Descartar vacantes foráneas a Mazatlán con sueldo menor a $18,000 MXN mensuales, salvo que sean de intern/practicante en empresas transnacionales o reconocidas que aporten alto valor curricular."
 
 compensation:
-  target_range: "Open"     # Your target total comp
+  target_range: "$18,000 - $35,000+ MXN/mes"     # Your target total comp
   currency: "MXN"
-  minimum: "Open"               # Walk-away number
-  location_flexibility: "Target Cities: Guadalajara/Zapopan, Mazatlán, Ciudad de México (CDMX), Querétaro, Puebla, and Remote. Both Intern/Becario and Full-Time roles are 100% accepted in all these cities."
+  minimum: "18,000 MXN/mes (para puestos foráneos fuera de Mazatlán)"               # Walk-away number
+  foraneo_mazatlan_policy: "Puestos presenciales o híbridos fuera de Mazatlán / Sinaloa requieren un sueldo mínimo de $18,000 MXN mensuales. La única excepción son vacantes de Intern / Becario / Practicante en empresas reconocidas (Tier 1/Tier 2 como Intel, Bosch, Continental, OMRON, HP, Flex, Jabil, GE, etc.) por su alto valor de proyección curricular."
+  location_flexibility: "Local base: Mazatlán, Sinaloa y 100% Remoto (sin restricción salarial estricta). Foráneo (Guadalajara/Zapopan, CDMX, Monterrey, Querétaro, etc.): mínimo $18,000 MXN/mes salvo interns en empresas reconocidas."
 
 location:
   country: "Mexico"

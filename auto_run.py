@@ -89,6 +89,64 @@ def is_duplicate(company, title, url, existing_text):
                 return True
     return False
 
+KNOWN_TIER_COMPANIES = [
+    "intel", "hp", "hewlett packard", "ibm", "oracle", "microsoft", "google", "amazon", "meta", "nvidia", "nxp", "amd", "qualcomm", "cisco", "dell",
+    "bosch", "continental", "tesla", "general motors", "gm", "ford", "bmw", "audi", "volkswagen", "vw", "toyota", "honda", "nissan", "zf", "magna", "visteon", "aptiv", "tenneco", "borgwarner",
+    "omron", "siemens", "schneider electric", "schneider", "abb", "rockwell automation", "rockwell", "fanuc", "kuka", "yaskawa", "honeywell", "emerson", "mitsubishi", "festo", "keyence", "smc",
+    "flex", "flextronics", "jabil", "sanmina", "foxconn", "benchmark", "plexus", "celestica",
+    "ge aerospace", "ge aviation", "general electric", "safran", "boeing", "airbus", "bombardier", "collins aerospace",
+    "tata", "tcs", "hcltech", "hcl", "infosys", "wipro", "cognizant", "accenture", "capgemini", "softtek", "luxoft",
+    "medtronic", "johnson & johnson", "jnj", "philips", "ge healthcare", "siemens healthineers", "boston scientific", "stryker",
+    "cemex", "femsa", "bimbo", "nemak", "alpek", "mabe"
+]
+
+def extract_salary_mxn(text):
+    """Extrae el salario mensual aproximado en MXN de texto descriptivo."""
+    if not text:
+        return None
+    patterns = [
+        r'\$\s*([0-9]{1,3}(?:,[0-9]{3})+|[0-9]{4,6})(?:\s*-\s*\$?\s*([0-9]{1,3}(?:,[0-9]{3})+|[0-9]{4,6}))?',
+        r'(?:sueldo|salario|pago|apoyo|ofrecemos|ingreso)\s*(?:económico|economico|mensual|de)?\s*:?\s*\$?\s*([0-9]{1,3}(?:,[0-9]{3})+|[0-9]{4,6})',
+        r'([0-9]{1,3}(?:,[0-9]{3})+|[0-9]{4,6})\s*(?:mxn|pesos)\s*(?:al\s*mes|mensuales)?'
+    ]
+    for pat in patterns:
+        m = re.search(pat, text, re.IGNORECASE)
+        if m:
+            s_str = m.group(1).replace(",", "")
+            try:
+                val = float(s_str)
+                if len(m.groups()) > 1 and m.group(2):
+                    val = float(m.group(2).replace(",", ""))
+                if "quincenal" in text[max(0, m.start()-20):m.end()+20].lower():
+                    val = val * 2.0
+                if val > 150000:
+                    val = val / 12.0
+                return val
+            except ValueError:
+                pass
+    return None
+
+def is_foraneo_mazatlan(location, description=""):
+    """Determina si la vacante es presencial/hibrida fuera de Mazatlan/Sinaloa."""
+    loc_clean = (str(location) + " " + str(description)[:200]).lower()
+    if any(m in loc_clean for m in ["mazatlán", "mazatlan", "sinaloa", "culiacan", "culiacán"]):
+        return False
+    if any(r in loc_clean for r in ["remoto", "remote", "home office", "desde casa", "teletrabajo", "100% remoto"]):
+        if not any(h in loc_clean for h in ["hibrido", "híbrido", "presencial"]):
+            return False
+    return True
+
+def is_intern_role(title, description=""):
+    """Determina si es un rol de estudiante, intern o practicante."""
+    t_clean = (str(title) + " " + str(description)[:200]).lower()
+    triggers = ["intern", "internship", "becario", "becaria", "practicante", "estudiante", "student worker", "trainee", "dual"]
+    return any(trig in t_clean for trig in triggers)
+
+def is_known_brand_company(company):
+    """Determina si la empresa es transnacional o de alto renombre curricular."""
+    comp_clean = re.sub(r'[^a-zA-Z0-9 ]', '', str(company)).lower()
+    return any(kc in comp_clean for kc in KNOWN_TIER_COMPANIES)
+
 def evaluate_job(title, company, description, location):
     t_lower = (title + " " + description).lower()
     senior_triggers = ["senior", "sr.", "sr ", "lead", "director", "principal", "manager", "staff engineer"]
@@ -96,6 +154,19 @@ def evaluate_job(title, company, description, location):
     is_senior = any(trig in title_lower for trig in senior_triggers) and not any(ok in title_lower for ok in ["junior", "intern", "becario", "trainee", "associate"])
     if is_senior:
         return 2.5, "Senior/Manager level (requiere más de 5 años de experiencia)", False
+
+    # Regla: Puestos foraneos a Mazatlan con sueldo < $18,000 MXN
+    is_foraneo = is_foraneo_mazatlan(location, description)
+    salary_detected = extract_salary_mxn(title + " " + description)
+    is_intern = is_intern_role(title, description)
+    is_known = is_known_brand_company(company)
+
+    if is_foraneo and salary_detected is not None and salary_detected < 18000:
+        if is_intern and is_known:
+            # Excepcion: intern/practicante en empresa conocida de alto impacto para CV
+            pass
+        else:
+            return 2.2, f"Descartado por compensación foránea: Sueldo reportado (${salary_detected:,.0f} MXN/mes) menor al mínimo requerido para foráneos ($18,000 MXN) fuera de Mazatlán.", False
 
     score = 3.5
     matches = []
@@ -117,7 +188,9 @@ def evaluate_job(title, company, description, location):
         score += 0.3
         
     loc_lower = location.lower()
-    if any(city in loc_lower for city in ["guadalajara", "jalisco", "zapopan", "monterrey", "tijuana", "reynosa"]):
+    if any(city in loc_lower for city in ["mazatlan", "mazatlán", "sinaloa"]):
+        score += 0.3
+    elif any(city in loc_lower for city in ["guadalajara", "jalisco", "zapopan", "monterrey", "tijuana", "reynosa"]):
         score += 0.2
     elif "mexico" in loc_lower or "remote" in loc_lower:
         score += 0.1
