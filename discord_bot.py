@@ -758,7 +758,8 @@ class CareerOpsDiscordBot(commands.Bot):
                     motivo = "Formulario con preguntas personalizadas pendientes de validacion manual."
                     action_txt = "Revisar preguntas y enviar"
 
-                add_pending_draft(app_id, today_str, portal_name, job["company"], job["title"], motivo, job.get("url", ""), action_txt)
+                final_portal_url = apply_res.get("external_url") or job.get("url", "")
+                add_pending_draft(app_id, today_str, portal_name, job["company"], job["title"], motivo, final_portal_url, action_txt)
 
                 embed = discord.Embed(
                     title=f"[Accion Requerida #{app_id}] {job['company']} - {job['title']}",
@@ -770,12 +771,17 @@ class CareerOpsDiscordBot(commands.Bot):
                 embed.add_field(name="Ubicacion", value=job['location'], inline=True)
                 embed.add_field(name="Puntuacion", value=f"{score}/5.0", inline=True)
                 embed.add_field(name="Alineacion Tecnica", value=reason, inline=False)
+                if final_portal_url:
+                    embed.add_field(name="Portal Directo", value=f"[Abrir en {portal_type}]({final_portal_url})", inline=False)
 
                 files = []
                 if pdf_file.exists():
                     files.append(discord.File(str(pdf_file), filename=pdf_file.name))
+                proof_obj = Path(proof_path) if proof_path else None
+                if proof_obj and proof_obj.exists():
+                    files.append(discord.File(str(proof_obj), filename=proof_obj.name))
 
-                draft_view = ManualDraftView(app_id, job.get("url", ""))
+                draft_view = ManualDraftView(app_id, final_portal_url)
 
                 target_manual_ch = self.manual_channel or channel
                 await target_manual_ch.send(embed=embed, files=files, view=draft_view)
@@ -842,6 +848,22 @@ class CareerOpsDiscordBot(commands.Bot):
         if message.author.bot:
             return
 
+        content = message.content.strip()
+
+        # Comando /aplicar o /postular en cualquier canal
+        if content.startswith(("/aplicar", "!aplicar", "/postular", "!postular")):
+            parts = content.split(maxsplit=1)
+            if len(parts) < 2:
+                await message.reply(
+                    "**[Uso del comando /aplicar]**\n"
+                    "Debes proporcionar el enlace directo de la vacante a evaluar y postular.\n\n"
+                    "Ejemplo: `/aplicar https://jobs.bombardier.com/job/...`"
+                )
+                return
+            target_url = parts[1].strip()
+            asyncio.create_task(self.process_single_apply(message.channel, target_url))
+            return
+
         # 1. Canal #chat-antigravity
         if self.antigravity_channel and message.channel.id == self.antigravity_channel.id:
             await self.handle_antigravity_chat(message)
@@ -852,7 +874,147 @@ class CareerOpsDiscordBot(commands.Bot):
             await self.handle_cv_generation(message)
             return
 
+        # 3. Canal #control-y-batches (si pegan una URL directamente)
+        if self.control_channel and message.channel.id == self.control_channel.id:
+            url_match = re.search(r'https?://[^\s]+', content)
+            if url_match:
+                asyncio.create_task(self.process_single_apply(message.channel, url_match.group(0)))
+                return
+
         await self.process_commands(message)
+
+    async def process_single_apply(self, channel: discord.TextChannel, job_url: str):
+        """Evalua, genera CV adaptado y ejecuta la postulacion para una vacante o portal externo."""
+        await channel.send(f"[Procesando Vacante Externa] Extrayendo requisitos y preparando CV:\n{job_url}")
+
+        title = "Puesto Técnico / Ingeniería"
+        company = "Empresa"
+        location = "México"
+        description = ""
+
+        try:
+            import httpx
+            from bs4 import BeautifulSoup
+            headers = {"User-Agent": "Mozilla/5.0 (X11; Linux x86_64; rv:130.0) Gecko/20100101 Firefox/130.0"}
+            async with httpx.AsyncClient(timeout=10.0, follow_redirects=True) as client:
+                r = await client.get(job_url, headers=headers)
+                if r.status_code == 200:
+                    soup = BeautifulSoup(r.text, "html.parser")
+                    h1 = soup.select_one("h1, .top-card-layout__title, .jobsearch-JobInfoHeader-title")
+                    if h1:
+                        title = h1.get_text(strip=True)
+                    c_el = soup.select_one("a.topcard__org-name-link, div[data-company-name='true'], .jobsearch-CompanyInfoContainer, .company-name")
+                    if c_el:
+                        company = c_el.get_text(strip=True)
+                    description = soup.get_text(separator="\n", strip=True)[:4000]
+        except Exception as e:
+            logger.warning(f"Extraccion de vacante individual: {e}")
+
+        score, reason, qualifies = evaluate_job(title, company, description, location)
+        app_id = get_next_id()
+        today_str = datetime.now().strftime("%Y-%m-%d")
+
+        job = {
+            "title": title,
+            "company": company,
+            "description": description,
+            "location": location,
+            "url": job_url,
+            "score": score,
+            "reason": reason
+        }
+
+        # Generar CV adaptado a 1 pagina
+        tex_code, slug, _ = generate_tailored_cv(job, app_id)
+        cand_slug = re.sub(r'[^a-zA-Z0-9]', '', PROFILE.get("full_name", "Candidate"))
+        tex_file = OUTPUT_DIR / f"CV-{cand_slug}-{slug}.tex"
+        pdf_file = OUTPUT_DIR / f"CV-{cand_slug}-{slug}.pdf"
+        tex_file.write_text(tex_code, encoding="utf-8")
+        await asyncio.to_thread(compile_pdf, tex_file, OUTPUT_DIR)
+
+        # Ejecutar navegacion Playwright
+        apply_res = await asyncio.to_thread(run_auto_apply_sync, job_url, pdf_file, app_id, True)
+        app_status = apply_res.get("status", "Evaluated")
+        proof_path = apply_res.get("proof", "")
+        portal_type = apply_res.get("portal_type", "Corporativo")
+        final_portal_url = apply_res.get("external_url") or job_url
+
+        # Guardar reporte
+        report_file = REPORTS_DIR / f"{app_id}-{slug}-{today_str}.md"
+        report_content = f"""# Evaluation Report: #{app_id} - {company} - {title}
+
+**Evaluated:** {today_str}  
+**Score:** {score}/5.0  
+**Archetype:** Robotics & Automation Engineering  
+**Status:** {app_status}  
+**Location:** {location}  
+**PDF:** [CV-{cand_slug}-{slug}.pdf](../output/CV-{cand_slug}-{slug}.pdf)  
+**Posting URL:** {job_url}  
+**Destination URL:** {final_portal_url}  
+
+---
+
+## Block A: Job Overview & Key Alignment
+- **Company:** {company}
+- **Role:** {title}
+- **Location:** {location}
+- **Auto-Apply Status:** {app_status}
+- **Portal Type:** {portal_type}
+
+## Block B: Match Analysis
+- {reason}
+"""
+        report_file.write_text(report_content, encoding="utf-8")
+
+        # applications.md
+        new_row = f"| {app_id} | {today_str} | {company} | {title} | {score}/5 | {app_status} | Yes | [{app_id}](../reports/{app_id}-{slug}-{today_str}.md) | Discord External Apply ({portal_type}) |\n"
+        with open(APPS_FILE, "a", encoding="utf-8") as f:
+            f.write(new_row)
+
+        portal_name = "Indeed" if "indeed.com" in job_url else ("LinkedIn" if "linkedin.com" in job_url else ("Computrabajo" if "computrabajo.com" in job_url else "Web"))
+
+        if app_status == "Applied":
+            embed = discord.Embed(
+                title=f"[Postulacion Exitosa #{app_id}] {company} - {title}",
+                description="Postulacion directa completada exitosamente en el portal corporativo.",
+                color=discord.Color.green(),
+                timestamp=datetime.now()
+            )
+            embed.add_field(name="Portal", value=f"{portal_name} ({portal_type})", inline=True)
+            embed.add_field(name="Puntuacion", value=f"{score}/5.0", inline=True)
+            embed.add_field(name="Alineacion", value=reason, inline=False)
+            files = []
+            if pdf_file.exists():
+                files.append(discord.File(str(pdf_file), filename=pdf_file.name))
+            proof_obj = Path(proof_path) if proof_path else None
+            if proof_obj and proof_obj.exists():
+                files.append(discord.File(str(proof_obj), filename=proof_obj.name))
+            await channel.send(embed=embed, files=files)
+        else:
+            motivo = f"Portal corporativo ({portal_type}) detectado. Requiere confirmacion o credenciales."
+            add_pending_draft(app_id, today_str, f"{portal_name} ({portal_type})", company, title, motivo, final_portal_url, f"Completar en portal {portal_type}")
+            embed = discord.Embed(
+                title=f"[Accion Requerida #{app_id}] {company} - {title}",
+                description=motivo,
+                color=discord.Color.orange(),
+                timestamp=datetime.now()
+            )
+            embed.add_field(name="Portal", value=f"{portal_name} ({portal_type})", inline=True)
+            embed.add_field(name="Ubicacion", value=location, inline=True)
+            embed.add_field(name="Puntuacion", value=f"{score}/5.0", inline=True)
+            embed.add_field(name="Portal Directo", value=f"[Abrir en {portal_type}]({final_portal_url})", inline=False)
+
+            files = []
+            if pdf_file.exists():
+                files.append(discord.File(str(pdf_file), filename=pdf_file.name))
+            proof_obj = Path(proof_path) if proof_path else None
+            if proof_obj and proof_obj.exists():
+                files.append(discord.File(str(proof_obj), filename=proof_obj.name))
+
+            draft_view = ManualDraftView(app_id, final_portal_url)
+            target_manual_ch = self.manual_channel or channel
+            await target_manual_ch.send(embed=embed, files=files, view=draft_view)
+            await channel.send(f"[Accion Manual #{app_id}] {company} - {title} enviada al canal #{target_manual_ch.name} con CV personalizado adjunto.")
 
     async def handle_antigravity_chat(self, message: discord.Message):
         """Maneja mensajes, comandos de modelo/esfuerzo y /plan en #chat-antigravity."""
