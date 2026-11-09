@@ -620,11 +620,91 @@ async def handle_dayforce_flow(page, pdf_path, app_id, auto_submit, proof_path, 
         result["message"] = f"Portal Dayforce procesado con datos cargados ({str(e)[:60]})."
         return result
 
+async def poll_email_verification(context, tenant_domain="workday", max_attempts=6, wait_sec=15):
+    """
+    Sondea de forma estrictamente bajo demanda (solo durante la postulación activa)
+    la llegada del correo de verificación (enlace o código OTP de 6 dígitos)
+    utilizando primero el webhook de n8n y con fallback al lector autenticado en el navegador.
+    """
+    print(f"  [Auto-Verifier] Iniciando sondeo bajo demanda de confirmación por correo ({max_attempts} intentos cada {wait_sec}s)...")
+    
+    for attempt in range(1, max_attempts + 1):
+        print(f"  [Auto-Verifier] Intento {attempt}/{max_attempts}: Comprobando bandeja de entrada...")
+        
+        # 1. Intentar vía webhook de n8n
+        try:
+            async with httpx.AsyncClient(timeout=8.0) as client:
+                resp = await client.post(
+                    "http://localhost:5678/webhook/workday-email-verify",
+                    json={"query": f"from:(*{tenant_domain}* OR *myworkdayjobs* OR *dayforce*) newer_than:15m"}
+                )
+                if resp.status_code == 200:
+                    data = resp.json()
+                    if data.get("verified") and (data.get("url") or data.get("code")):
+                        print("  [Auto-Verifier] Verificación obtenida exitosamente vía webhook n8n.")
+                        return {"status": "found", "url": data.get("url"), "code": data.get("code")}
+        except Exception:
+            pass
+            
+        # 2. Fallback: Lector directo en navegador sobre la sesión activa de Gmail
+        gmail_page = None
+        try:
+            gmail_page = await context.new_page()
+            query_enc = f"from%3A{tenant_domain}+OR+from%3Amyworkday+OR+subject%3Averif+OR+subject%3Aactivat+OR+subject%3Acandidate"
+            await gmail_page.goto(f"https://mail.google.com/mail/u/0/#search/{query_enc}", timeout=20000)
+            await gmail_page.wait_for_timeout(3500)
+            
+            rows = await gmail_page.locator("tr[role='row']").all()
+            if rows:
+                await rows[0].click()
+                await gmail_page.wait_for_timeout(2500)
+                
+                links = await gmail_page.locator("div.a3s a").all()
+                for l in links:
+                    href = await l.get_attribute("href")
+                    if href and any(k in href.lower() for k in ["activate", "verifyemail", "token=", "workday", "dayforce"]):
+                        clean_href = href.replace("&amp;", "&")
+                        print(f"  [Auto-Verifier] Enlace de activación detectado en Gmail: {clean_href[:80]}...")
+                        await gmail_page.close()
+                        return {"status": "found", "url": clean_href, "code": None}
+                        
+                body_elem = gmail_page.locator("div.a3s").first
+                if await body_elem.is_visible():
+                    body_text = await body_elem.inner_text()
+                    code_match = re.search(r'(?:code|código|security|verificación)[^\d]{1,15}(\d{6})', body_text, re.I)
+                    if code_match:
+                        code = code_match.group(1)
+                        print(f"  [Auto-Verifier] Código de verificación OTP detectado: {code}")
+                        await gmail_page.close()
+                        return {"status": "found", "url": None, "code": code}
+        except Exception as e:
+            print(f"  [Auto-Verifier] Aviso al leer Gmail en navegador: {e}")
+        finally:
+            if gmail_page:
+                try: await gmail_page.close()
+                except Exception: pass
+                
+        if attempt < max_attempts:
+            print(f"  [Auto-Verifier] Correo aún no recibido. Esperando {wait_sec}s para siguiente comprobación...")
+            await asyncio.sleep(wait_sec)
+            
+    return {"status": "not_found", "url": None, "code": None}
+
 async def handle_workday_flow(page, pdf_path, app_id, auto_submit, proof_path, result):
-    """Automatiza el flujo completo de postulación en Workday (Autofill with Resume, login/registro y envío)."""
+    """Automatiza el flujo completo de postulación en Workday (Autofill with Resume, login/registro, verificación por correo y envío)."""
     print("  [Workday Engine] Iniciando postulación automatizada en Workday...")
     result["portal_type"] = "Workday"
+    workday_pwd = get_workday_password()
+    user_email = PROFILE.get("email", "omarpayant@gmail.com")
     
+    tenant_domain = "workday"
+    try:
+        parts = page.url.split("/")
+        if len(parts) > 2 and "myworkdayjobs.com" in parts[2]:
+            tenant_domain = parts[2].split(".")[0]
+    except Exception:
+        pass
+
     # 1. Aceptar banner de cookies si está presente
     try:
         cookie_btn = page.locator("[data-automation-id='legalNoticeAcceptButton'], button:has-text('Accept Cookies')").first
@@ -643,7 +723,7 @@ async def handle_workday_flow(page, pdf_path, app_id, auto_submit, proof_path, r
     except Exception as e:
         print(f"  [Workday Engine] Aviso en clic de Apply: {e}")
 
-    # 3. Seleccionar 'Autofill with Resume' o 'Apply Manually'
+    # 3. Seleccionar 'Autofill with Resume'
     try:
         autofill_btn = page.locator("[data-automation-id='autofillWithResume'], [data-automation-id='applyManually']").first
         if await autofill_btn.is_visible():
@@ -664,97 +744,136 @@ async def handle_workday_flow(page, pdf_path, app_id, auto_submit, proof_path, r
     except Exception:
         pass
 
-    # 5. Gestión de Autenticación: Sign In o Create Account
-    workday_pwd = get_workday_password()
-    user_email = PROFILE.get("email", "omarpayant@gmail.com")
+    # 5. Gestión de Autenticación: Sign In vs Create Account
+    body_text = await page.locator("body").inner_text()
+    is_auth_screen = "create account" in body_text.lower() or "sign in" in body_text.lower()
+    
+    if is_auth_screen and await page.locator("input[type='file'], [data-automation-id='file-upload-input-ref']").count() == 0:
+        # Asegurarnos de que estamos en modo Sign In
+        si_toggle = page.locator("button:has-text('Sign In'), a:has-text('Sign In'), [data-automation-id='signInLink']").filter(has_text="Sign In").last
+        if await si_toggle.is_visible():
+            try:
+                print("  [Workday Engine] Cambiando a vista de Sign In...")
+                await si_toggle.click()
+                await page.wait_for_timeout(1500)
+            except Exception:
+                pass
 
-    # Intentar Sign In primero si está disponible
-    sign_in_link = page.locator("[data-automation-id='signInLink']").first
-    if await sign_in_link.is_visible():
-        try:
-            print("  [Workday Engine] Cambiando a vista de Sign In...")
-            await sign_in_link.click()
-            await page.wait_for_timeout(1500)
-        except Exception:
-            pass
+        email_inp = page.locator("input[data-automation-id='email']:visible").first
+        pwd_inp = page.locator("input[data-automation-id='password']:visible").first
+        sign_in_submit = page.locator("[data-automation-id='signInSubmitButton']:visible, button:has-text('Sign In'):visible").last
 
-    email_inp = page.locator("[data-automation-id='email'], input[type='email']").first
-    pwd_inp = page.locator("[data-automation-id='password'], input[type='password']").first
-    sign_in_submit = page.locator("[data-automation-id='signInSubmitButton']").first
+        if await email_inp.is_visible() and await pwd_inp.is_visible():
+            print(f"  [Workday Engine] Autenticando con cuenta Workday ({user_email})...")
+            await email_inp.fill(user_email)
+            await pwd_inp.fill(workday_pwd)
+            await page.wait_for_timeout(500)
+            
+            if await sign_in_submit.is_visible():
+                await sign_in_submit.click(force=True)
+                await page.wait_for_timeout(5000)
 
-    if await email_inp.is_visible() and await pwd_inp.is_visible():
-        print(f"  [Workday Engine] Autenticando con cuenta Workday ({user_email})...")
-        await email_inp.fill(user_email)
-        await pwd_inp.fill(workday_pwd)
-        await page.wait_for_timeout(500)
+            # Comprobar si tras login indica que ya se postuló
+            body_after_login = await page.locator("body").inner_text()
+            if any(w in body_after_login.lower() for w in ["already applied", "ya te has postulado"]):
+                await page.screenshot(path=str(proof_path))
+                result["status"] = "Applied"
+                result["message"] = "Postulación previa detectada en Workday tras inicio de sesión."
+                print("  [Workday Engine] Postulación previa confirmada tras login en Workday.")
+                return result
+
+            # Si aparece mensaje de error de credenciales ("invalid user name or password"), registrar cuenta nueva
+            error_msg = page.locator("[data-automation-id='errorMessage'], [role='alert']").first
+            if await error_msg.is_visible() and any(w in (await error_msg.inner_text()).lower() for w in ["invalid", "incorrect", "no coinciden"]):
+                print("  [Workday Engine] Cuenta no existente en este tenant. Registrando nueva cuenta...")
+                create_link = page.locator("[data-automation-id='createAccountLink'], button:has-text('Create Account')").last
+                if await create_link.is_visible():
+                    await create_link.click(force=True)
+                    await page.wait_for_timeout(2000)
+
+                email_reg = page.locator("input[data-automation-id='email']:visible").first
+                pwd_reg = page.locator("input[data-automation-id='password']:visible").first
+                pwd_conf = page.locator("input[data-automation-id='verifyPassword']:visible").first
+                terms_chk = page.locator("input[data-automation-id='createAccountCheckbox'], input[type='checkbox']").first
+                reg_submit = page.locator("[data-automation-id='createAccountSubmitButton']").first
+
+                if await email_reg.is_visible():
+                    await email_reg.fill(user_email)
+                    await pwd_reg.fill(workday_pwd)
+                    if await pwd_conf.is_visible():
+                        await pwd_conf.fill(workday_pwd)
+                    if await terms_chk.is_visible():
+                        try: await terms_chk.check(force=True)
+                        except Exception: pass
+                    if await reg_submit.is_visible():
+                        await reg_submit.click(force=True)
+                        await page.wait_for_timeout(5000)
+
+    # 6. Comprobar si se requiere verificación por correo (enlace o código OTP)
+    body_curr = ""
+    try: body_curr = await page.locator("body").inner_text()
+    except Exception: pass
+
+    verif_needed = (
+        any(w in body_curr.lower() for w in ["verify your account", "verificar tu cuenta", "verificación de cuenta", "need verification", "resend account verification", "check your email"])
+        or await page.locator("[data-automation-id='verificationCode'], input[name*='verification' i]").count() > 0
+    )
+
+    if verif_needed:
+        print("  [Workday Engine] Verificación de cuenta requerida por Workday. Iniciando sondeo bajo demanda...")
+        verif_data = await poll_email_verification(page.context, tenant_domain=tenant_domain, max_attempts=6, wait_sec=15)
         
-        if await sign_in_submit.is_visible():
-            await sign_in_submit.click(force=True)
-            await page.wait_for_timeout(5000)
+        if verif_data.get("url"):
+            print("  [Workday Engine] Activando cuenta visitando enlace recibido...")
+            act_page = await page.context.new_page()
+            try:
+                await act_page.goto(verif_data["url"], timeout=30000)
+                await act_page.wait_for_timeout(4000)
+                print(f"  [Workday Engine] Cuenta activada. URL final: {act_page.url}")
+            except Exception as e:
+                print(f"  [Workday Engine] Aviso al visitar enlace de activación: {e}")
+            finally:
+                try: await act_page.close()
+                except Exception: pass
 
-        # Comprobar si tras login indica que ya se postuló
-        body_after_login = await page.locator("body").inner_text()
-        if any(w in body_after_login.lower() for w in ["already applied", "ya te has postulado"]):
+            # Ahora autenticar en la página principal con la cuenta activada
+            print("  [Workday Engine] Iniciando sesión tras activación...")
+            si_toggle = page.locator("button:has-text('Sign In'), a:has-text('Sign In'), [data-automation-id='signInLink']").filter(has_text="Sign In").last
+            if await si_toggle.is_visible():
+                await si_toggle.click()
+                await page.wait_for_timeout(1500)
+            vis_email = page.locator("input[data-automation-id='email']:visible").first
+            vis_pwd = page.locator("input[data-automation-id='password']:visible").first
+            vis_submit = page.locator("[data-automation-id='signInSubmitButton']:visible, button:has-text('Sign In'):visible").last
+            if await vis_email.is_visible():
+                await vis_email.fill(user_email)
+                await vis_pwd.fill(workday_pwd)
+                await page.wait_for_timeout(500)
+                await vis_submit.click(force=True)
+                await page.wait_for_timeout(5000)
+
+        elif verif_data.get("code"):
+            otp_val = verif_data["code"]
+            print(f"  [Workday Engine] Ingresando código de verificación {otp_val}...")
+            otp_input = page.locator("[data-automation-id='verificationCode'], input[name*='verification' i]").first
+            if await otp_input.is_visible():
+                await otp_input.fill(otp_val)
+                await page.wait_for_timeout(500)
+                verify_submit = page.locator("button:has-text('Verify'), button:has-text('Verificar'), [data-automation-id='verifyCodeButton']").first
+                if await verify_submit.is_visible():
+                    await verify_submit.click(force=True)
+                    await page.wait_for_timeout(4000)
+        else:
             await page.screenshot(path=str(proof_path))
-            result["status"] = "Applied"
-            result["message"] = "Postulación previa detectada en Workday tras inicio de sesión."
-            print("  [Workday Engine] Postulación previa confirmada tras login en Workday.")
+            result["status"] = "EmailVerificationPending"
+            result["message"] = "Workday ha enviado un correo para activar tu cuenta. Pulsa el enlace recibido en tu bandeja de entrada."
             return result
 
-        # Si aparece mensaje de error de credenciales ("invalid user name or password"), registrar cuenta
-        error_msg = page.locator("[data-automation-id='errorMessage'], [role='alert']").first
-        if await error_msg.is_visible():
-            print("  [Workday Engine] Cuenta no existente en este tenant. Registrando nueva cuenta...")
-            create_link = page.locator("[data-automation-id='createAccountLink'], [data-automation-id='createAccountSubmitButton']").first
-            if await create_link.is_visible():
-                await create_link.click(force=True)
-                await page.wait_for_timeout(2000)
-
-            email_reg = page.locator("[data-automation-id='email']").first
-            pwd_reg = page.locator("[data-automation-id='password']").first
-            pwd_conf = page.locator("[data-automation-id='verifyPassword']").first
-            terms_chk = page.locator("[data-automation-id='createAccountCheckbox'], input[type='checkbox']").first
-            reg_submit = page.locator("[data-automation-id='createAccountSubmitButton']").first
-
-            if await email_reg.is_visible():
-                await email_reg.fill(user_email)
-                await pwd_reg.fill(workday_pwd)
-                if await pwd_conf.is_visible():
-                    await pwd_conf.fill(workday_pwd)
-                if await terms_chk.is_visible():
-                    try: await terms_chk.check(force=True)
-                    except Exception: pass
-                if await reg_submit.is_visible():
-                    await reg_submit.click(force=True)
-                    await page.wait_for_timeout(5000)
-
-    # 6. Comprobar si se requiere código OTP o verificación por correo
-    body_curr = ""
+    # 7. Subida de CV Adaptado (Paso: Autofill with Resume)
     try:
-        body_curr = await page.locator("body").inner_text()
-    except Exception:
-        pass
-
-    if any(w in body_curr.lower() for w in ["verify your account", "verificar tu cuenta", "verificación de cuenta", "need verification", "resend account verification"]):
-        print("  [Workday Engine] Verificación de cuenta requerida por Workday tras creación...")
-        await page.screenshot(path=str(proof_path))
-        result["status"] = "EmailVerificationPending"
-        result["message"] = "Workday ha creado tu cuenta y enviado un correo de confirmación a tu bandeja de entrada para activarla."
-        return result
-
-    otp_inp = page.locator("[data-automation-id='verificationCode'], input[name*='verification' i]").first
-    if await otp_inp.is_visible():
-        print("  [Workday Engine] Código de verificación de correo requerido por Workday...")
-        await page.screenshot(path=str(proof_path))
-        result["status"] = "EmailVerificationPending"
-        result["message"] = "Workday ha enviado un código de verificación a tu correo para activar la cuenta en este portal."
-        return result
-
-    # 7. Subida de CV Adaptado (Paso 1: Autofill with Resume)
-    try:
-        file_input = page.locator("input[type='file'], [data-automation-id='file-upload-dropzone'] input[type='file']").first
+        file_input = page.locator("input[type='file'], [data-automation-id='file-upload-input-ref']").first
         if await file_input.count() > 0 and pdf_path and Path(pdf_path).exists():
-            print(f"  [Workday Engine] Subiendo CV adaptado: {Path(pdf_path).name}...")
+            print(f"  [Workday Engine] Adjuntando CV adaptado: {Path(pdf_path).name}...")
             await file_input.set_input_files(str(pdf_path))
             await page.wait_for_timeout(4000)
             
@@ -762,29 +881,55 @@ async def handle_workday_flow(page, pdf_path, app_id, auto_submit, proof_path, r
             continue_btn = page.locator("[data-automation-id='pageFooterNextButton'], [data-automation-id='bottom-navigation-next-button'], button:has-text('Continue'), button:has-text('Continuar')").first
             if await continue_btn.is_visible():
                 await continue_btn.click(force=True)
-                await page.wait_for_timeout(5000)
+                await page.wait_for_timeout(6000)
     except Exception as e:
         print(f"  [Workday Engine] Aviso al adjuntar CV: {e}")
 
-    # 8. Iterar a través de los pasos del formulario de Workday (Información, Experiencia, Preguntas, Declaraciones)
+    # 8. Iterar a través de los pasos del formulario de Workday (Información, Experiencia, Preguntas, Declaraciones, Revisión)
     max_steps = 7
     for step_num in range(1, max_steps + 1):
         try:
             curr_text = await page.locator("body").inner_text()
             print(f"  [Workday Engine] Procesando paso {step_num} de la solicitud...")
 
-            # Campos de texto personales si no están poblados
-            fn_inp = page.locator("[data-automation-id='legalNameSection_firstName']").first
-            if await fn_inp.is_visible():
-                val = await fn_inp.input_value()
-                if not val:
-                    await fn_inp.fill(PROFILE.get("first_name", "Christian Omar"))
+            # Detectar si estamos en el paso final de Revisión / Review
+            is_review = "review" in curr_text.lower() or await page.locator("button:has-text('Submit'), button:has-text('Enviar')").count() > 0
+            if is_review:
+                await page.screenshot(path=str(proof_path))
+                if auto_submit:
+                    submit_final = page.locator("[data-automation-id='pageFooterNextButton'], button:has-text('Submit'), button:has-text('Enviar')").first
+                    if await submit_final.is_visible():
+                        print("  [Workday Engine] Enviando postulación definitiva automáticamente...")
+                        await submit_final.click(force=True)
+                        await page.wait_for_timeout(6000)
+                        await page.screenshot(path=str(proof_path))
+                        result["status"] = "Applied"
+                        result["message"] = "Postulación enviada exitosamente en Workday."
+                        print("  [Workday Engine] Postulación enviada exitosamente en Workday.")
+                        return result
 
-            ln_inp = page.locator("[data-automation-id='legalNameSection_lastName']").first
-            if await ln_inp.is_visible():
-                val = await ln_inp.input_value()
-                if not val:
-                    await ln_inp.fill(PROFILE.get("last_name", "Payán Torróntegui"))
+                result["status"] = "ExternalPending"
+                result["message"] = "Formulario completado en Workday con CV adaptado; listo para envío final."
+                return result
+
+            # Campos personales y capitalización
+            given = page.locator("[data-automation-id='legalNameSection_firstName']").first
+            if await given.is_visible():
+                v = await given.input_value()
+                if not v or v.isupper():
+                    await given.fill(PROFILE.get("first_name", "Christian Omar"))
+
+            middle = page.locator("[data-automation-id='legalNameSection_middleName']").first
+            if await middle.is_visible():
+                v = await middle.input_value()
+                if not v or v.isupper():
+                    await middle.fill("Omar")
+
+            family = page.locator("[data-automation-id='legalNameSection_lastName']").first
+            if await family.is_visible():
+                v = await family.input_value()
+                if not v or v.isupper():
+                    await family.fill(PROFILE.get("last_name", "Payán Torróntegui"))
 
             ph_inp = page.locator("[data-automation-id='phone-number']").first
             if await ph_inp.is_visible():
@@ -804,6 +949,19 @@ async def handle_workday_flow(page, pdf_path, app_id, auto_submit, proof_path, r
                 if not val:
                     await city_inp.fill("Guadalajara")
 
+            # Selector de fuente / How Did You Hear About Us?
+            source_btn = page.locator("[data-automation-id='sourceDropdown'], [data-automation-id='sourcePrompt'], div:has(> label:has-text('How Did You Hear')) button").first
+            if await source_btn.is_visible():
+                try:
+                    await source_btn.click()
+                    await page.wait_for_timeout(1000)
+                    opt = page.locator("[data-automation-id='promptOption'], [role='option']").first
+                    if await opt.is_visible():
+                        await opt.click()
+                        await page.wait_for_timeout(500)
+                except Exception:
+                    pass
+
             # Preguntas de autorización de trabajo y visa
             for radio_yes in await page.locator("input[type='radio'][value*='yes' i], input[type='radio'][id*='yes' i]").all():
                 try:
@@ -821,31 +979,11 @@ async def handle_workday_flow(page, pdf_path, app_id, auto_submit, proof_path, r
                 except Exception:
                     pass
 
-            # Detectar si estamos en el paso final de Revisión / Review
-            is_review = "review" in curr_text.lower() or await page.locator("button:has-text('Submit'), button:has-text('Enviar')").count() > 0
-            if is_review:
-                await page.screenshot(path=str(proof_path))
-                if auto_submit:
-                    submit_final = page.locator("[data-automation-id='pageFooterNextButton'], button:has-text('Submit'), button:has-text('Enviar')").first
-                    if await submit_final.is_visible():
-                        print("  [Workday Engine] Enviando postulación definitiva...")
-                        await submit_final.click(force=True)
-                        await page.wait_for_timeout(5000)
-                        await page.screenshot(path=str(proof_path))
-                        result["status"] = "Applied"
-                        result["message"] = "Postulación enviada exitosamente en Workday."
-                        print("  [Workday Engine] Postulación enviada exitosamente en Workday.")
-                        return result
-
-                result["status"] = "ExternalPending"
-                result["message"] = "Formulario completado en Workday con CV adaptado; listo para envío final."
-                return result
-
-            # Avanzar al siguiente paso
-            next_btn = page.locator("[data-automation-id='pageFooterNextButton'], [data-automation-id='bottom-navigation-next-button'], button:has-text('Continue'), button:has-text('Next'), button:has-text('Siguiente')").first
+            # Avanzar al siguiente paso (Save and Continue / Continue)
+            next_btn = page.locator("[data-automation-id='pageFooterNextButton'], [data-automation-id='bottom-navigation-next-button'], button:has-text('Save and Continue'), button:has-text('Continue'), button:has-text('Next'), button:has-text('Siguiente')").first
             if await next_btn.is_visible():
                 await next_btn.click(force=True)
-                await page.wait_for_timeout(3500)
+                await page.wait_for_timeout(4500)
             else:
                 break
         except Exception as e:

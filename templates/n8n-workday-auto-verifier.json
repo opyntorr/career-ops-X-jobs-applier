@@ -1,0 +1,107 @@
+{
+  "id": "WorkdayVerifier01",
+  "name": "Career-Ops Workday & ATS Auto-Verifier",
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "workday-email-verify",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "e1f11a20-3b4a-4a11-8e56-111111111111",
+      "name": "Incoming Career-Ops Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [-400, 300],
+      "webhookId": "workday-email-verify"
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "operation": "getAll",
+        "returnAll": false,
+        "limit": 5,
+        "simple": false,
+        "filters": {
+          "q": "={{ $json.body && $json.body.query ? $json.body.query : 'newer_than:15m' }}"
+        }
+      },
+      "id": "e2f22b30-4c5b-5b22-9f67-222222222222",
+      "name": "Gmail Search Verification",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [-150, 300],
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "HpmyqoAqph28Rjgm",
+          "name": "Gmail account"
+        }
+      },
+      "alwaysOutputData": true,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\nreturn [{\n  json: {\n    first_json: items[0] ? items[0].json : null,\n    count: items.length\n  }\n}];"
+      },
+      "id": "e3f33c40-5d6c-6c33-a078-333333333333",
+      "name": "Extract Verification Data",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [100, 300]
+    },
+    {
+      "parameters": {
+        "respondWith": "firstIncomingItem",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "id": "e4f44d50-6e7d-7d44-b189-444444444444",
+      "name": "Respond with Verification Result",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [350, 300]
+    }
+  ],
+  "connections": {
+    "Incoming Career-Ops Webhook": {
+      "main": [
+        [
+          {
+            "node": "Gmail Search Verification",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gmail Search Verification": {
+      "main": [
+        [
+          {
+            "node": "Extract Verification Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Verification Data": {
+      "main": [
+        [
+          {
+            "node": "Respond with Verification Result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true
+}
