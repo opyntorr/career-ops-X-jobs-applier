@@ -190,15 +190,23 @@ Este registro contiene las vacantes donde el bot completó el perfil, adaptó el
         rows.append(f"| {it['id']} | {it['date']} | {it['portal']} | {it['company']} | {it['role']} | {it['reason']} | {l} | {it['action']} |")
     PENDING_DRAFTS_FILE.write_text(header + "\n".join(rows) + "\n", encoding="utf-8")
 
-def scrape_computrabajo(terms, max_items=20):
-    """Extrae vacantes directamente de Computrabajo Mexico para terminos tecnicos."""
+def scrape_computrabajo(terms, max_items=20, local_only: bool = False):
+    """Extrae vacantes directamente de Computrabajo Mexico para terminos tecnicos, con soporte para filtro local Mazatlan."""
     jobs = []
     slugs = []
     for t in terms:
         s = re.sub(r'[^a-zA-Z0-9]+', '-', t.lower()).strip('-')
-        slugs.append(f"trabajo-de-{s}")
-        slugs.append(f"trabajo-de-{s}-en-jalisco")
-        slugs.append(f"trabajo-de-{s}-en-nuevo-leon")
+        if local_only:
+            slugs.append(f"trabajo-de-{s}-en-mazatlan")
+            slugs.append(f"trabajo-de-{s}-en-sinaloa")
+            slugs.append("trabajo-de-ingeniero-en-mazatlan")
+            slugs.append("empleos-en-mazatlan")
+        else:
+            slugs.append(f"trabajo-de-{s}")
+            slugs.append(f"trabajo-de-{s}-en-mazatlan")
+            slugs.append(f"trabajo-de-{s}-en-sinaloa")
+            slugs.append(f"trabajo-de-{s}-en-jalisco")
+            slugs.append(f"trabajo-de-{s}-en-nuevo-leon")
 
     headers = {"User-Agent": "Mozilla/5.0 (X11; Linux x86_64; rv:130.0) Gecko/20100101 Firefox/130.0"}
     for slug in set(slugs):
@@ -212,13 +220,17 @@ def scrape_computrabajo(terms, max_items=20):
                 boxes = soup.select("article.box_offer")
                 for b in boxes:
                     t_el = b.select_one("h2.title a, a.js-o-link")
-                    c_el = b.select_one("p.fs16, a.fc_base")
-                    l_el = b.select_one("p.fs13 span")
                     d_el = b.select_one("p.d-none, p.fc_aux")
-                    if t_el and c_el:
+                    p_tags = [p.get_text(strip=True) for p in b.select("p.fs16")]
+                    if t_el and p_tags:
                         title = t_el.get_text(strip=True)
-                        comp = c_el.get_text(strip=True)
-                        loc = l_el.get_text(strip=True) if l_el else "Mexico"
+                        comp = p_tags[0]
+                        loc = p_tags[1] if len(p_tags) > 1 else ("Mazatlán, Sinaloa" if local_only else "Mexico")
+
+                        # Filtro estricto local si local_only esta activo
+                        if local_only and not any(w in loc.lower() for w in ["mazatlán", "mazatlan", "sinaloa"]):
+                            continue
+
                         desc = d_el.get_text(strip=True) if d_el else title
                         link = t_el.get("href", "")
                         if link and not link.startswith("http"):
@@ -236,8 +248,8 @@ def scrape_computrabajo(terms, max_items=20):
             logger.warning(f"Aviso Computrabajo ({slug}): {e}")
     return jobs
 
-def collect_multi_platform_jobs(limit: int, query_term: str = None, hours_old: int = 72):
-    """Recolecta vacantes de LinkedIn, Indeed y Computrabajo a gran escala segun el volumen solicitado."""
+def collect_multi_platform_jobs(limit: int, query_term: str = None, hours_old: int = 72, platform: str = "all", computrabajo_scope: str = "local"):
+    """Recolecta vacantes segun plataforma (all, linkedin, indeed, computrabajo) y alcance de Computrabajo (local o nacional)."""
     existing_text = APPS_FILE.read_text(encoding="utf-8") if APPS_FILE.exists() else ""
     queries = [query_term] if query_term else DEFAULT_SEARCH_TERMS
     locations = DEFAULT_LOCATIONS
@@ -245,44 +257,56 @@ def collect_multi_platform_jobs(limit: int, query_term: str = None, hours_old: i
     results_wanted = max(5, min(20, (limit // 2) + 3))
     raw_jobs = []
 
-    # 1. JobSpy: LinkedIn + Indeed (Filtrar por Easy Apply para postulacion directa real)
-    import time
-    for q in queries:
-        for loc in locations:
-            try:
-                df = scrape_jobs(
-                    site_name=["indeed", "linkedin"],
-                    search_term=q,
-                    location=loc,
-                    results_wanted=results_wanted,
-                    hours_old=hours_old,
-                    country_indeed="mexico",
-                    easy_apply=True
-                )
-                if df is not None and not df.empty:
-                    for _, row in df.iterrows():
-                        c = str(row.get("company", "")).strip()
-                        t = str(row.get("title", "")).strip()
-                        u = str(row.get("job_url", "")).strip()
-                        l = str(row.get("location", "")).strip()
-                        d = str(row.get("description", "")).strip()
-                        if c and t and c.lower() != "nan" and t.lower() != "nan":
-                            raw_jobs.append({
-                                "company": c,
-                                "title": t,
-                                "url": u,
-                                "location": l,
-                                "description": d,
-                                "site": str(row.get("site", "jobspy"))
-                            })
-                time.sleep(1.2)
-            except Exception as e:
-                logger.warning(f"Aviso JobSpy ({q} - {loc}): {e}")
+    # 1. JobSpy: LinkedIn / Indeed
+    jobspy_sites = []
+    if platform in ["all", "linkedin", "indeed"]:
+        if platform == "all":
+            jobspy_sites = ["indeed", "linkedin"]
+        elif platform == "linkedin":
+            jobspy_sites = ["linkedin"]
+        elif platform == "indeed":
+            jobspy_sites = ["indeed"]
+
+    if jobspy_sites:
+        import time
+        for q in queries:
+            for loc in locations:
+                try:
+                    df = scrape_jobs(
+                        site_name=jobspy_sites,
+                        search_term=q,
+                        location=loc,
+                        results_wanted=results_wanted,
+                        hours_old=hours_old,
+                        country_indeed="mexico",
+                        easy_apply=True
+                    )
+                    if df is not None and not df.empty:
+                        for _, row in df.iterrows():
+                            c = str(row.get("company", "")).strip()
+                            t = str(row.get("title", "")).strip()
+                            u = str(row.get("job_url", "")).strip()
+                            l = str(row.get("location", "")).strip()
+                            d = str(row.get("description", "")).strip()
+                            if c and t and c.lower() != "nan" and t.lower() != "nan":
+                                raw_jobs.append({
+                                    "company": c,
+                                    "title": t,
+                                    "url": u,
+                                    "location": l,
+                                    "description": d,
+                                    "site": str(row.get("site", "jobspy"))
+                                })
+                    time.sleep(1.2)
+                except Exception as e:
+                    logger.warning(f"Aviso JobSpy ({q} - {loc}): {e}")
 
     # 2. Computrabajo directo
-    ct_terms = [query_term] if query_term else ["automatizacion", "mecatronica", "robotica", "control", "embebidos"]
-    ct_jobs = scrape_computrabajo(ct_terms, max_items=limit * 2)
-    raw_jobs.extend(ct_jobs)
+    if platform in ["all", "computrabajo"]:
+        ct_terms = [query_term] if query_term else ["automatizacion", "mecatronica", "robotica", "control", "embebidos", "ingeniero"]
+        ct_local = (computrabajo_scope == "local")
+        ct_jobs = scrape_computrabajo(ct_terms, max_items=limit * 2, local_only=ct_local)
+        raw_jobs.extend(ct_jobs)
 
     # 3. Deduplicar y calificar
     qualifying_jobs = []

@@ -1,0 +1,261 @@
+# Pipeline — Pending URLs
+
+Paste job URLs below as  then run .
+
+## Pending
+- [ ] https://mx.linkedin.com/jobs/view/test-engineer-at-nova-sky-stories-4453003423 | Nova Sky Stories | Test Engineer | Mazatlán, Sinaloa, Mexico
+- [ ] https://mx.linkedin.com/jobs/view/analista-mantenimiento-at-oxxo-4467927682 | OXXO | ANALISTA MANTENIMIENTO | Mazatlán, Sinaloa, Mexico
+- [ ] https://mx.linkedin.com/jobs/view/supervisi%C3%B3n-de-seguridad-e-higiene-at-csipa-soluciones-integrales-especializadas-4463466450 | CSIPA Soluciones Integrales Especializadas | Supervisión de seguridad e higiene | Mazatlán, Sinaloa, Mexico
+- [ ] https://mx.linkedin.com/jobs/view/sr-embedded-wireless-modem-engineer-at-nova-sky-stories-4453002429 | Nova Sky Stories | Sr. Embedded Wireless Modem Engineer | Mazatlán, Sinaloa, Mexico
+- [ ] https://mx.computrabajo.com/ofertas-de-trabajo/oferta-de-trabajo-de-ingeniero-electrico-en-proyectos-en-mazatlan-F9B37A494AB5444A61373E686DCF3405 | Worken | Ingeniero eléctrico en proyectos | Mazatlán, Sin.
+- [ ] https://mx.computrabajo.com/ofertas-de-trabajo/oferta-de-trabajo-de-ingeniero-de-planeacion-de-red-en-mazatlan-2AAD403DA5BC26C661373E686DCF3405 | Grupo Salinas | Ingeniero de Planeacion de Red | Mazatlán, Sin.
+- [ ] https://mx.computrabajo.com/ofertas-de-trabajo/oferta-de-trabajo-de-inspector-de-rx-nivel-ii-certificado-y-registro-de-horas-ojt-en-mazatlan-C48E326E6B9ED73261373E686DCF3405 | Tetakawi | Inspector de RX Nivel II (Manufactura Electrónica / Aeroespacial) | Mazatlán, Sin.
+- [ ] https://mx.computrabajo.com/ofertas-de-trabajo/oferta-de-trabajo-de-tecnico-electromecanico-eventual-en-mazatlan-DC3ACFC915F682D661373E686DCF3405 | IDEAL (Grupo Carso) | Técnico Electromecánico | Mazatlán, Sin.
+- [ ] https://mx.computrabajo.com/ofertas-de-trabajo/oferta-de-trabajo-de-tecnico-de-instalaciones-fotovoltaicas-en-mazatlan-7DFD05606F04ED0A61373E686DCF3405 | Empresa del Sector | Técnico de Instalaciones Fotovoltaicas | Mazatlán, Sin.
+- [ ] https://mx.computrabajo.com/ofertas-de-trabajo/oferta-de-trabajo-de-tecnicoa-instalador-con-experiencia-en-mazatlan-1F91EC537BE8417861373E686DCF3405 | integra-tech | Técnico Instalador de Redes y Telecom | Mazatlán, Sin.
+- [ ] https://www.amwestfunding.com/careers | AmWest Funding Mexico | Software Developer (Front-End) / Financial Data Analyst | Marina Mazatlán, Sin.
+
+- [ ] https://mx.linkedin.com/jobs/view/engineering-continuous-improvement-intern-at-ge-aerospace-4462031163 | GE Aerospace | Engineering continuous improvement intern | Querétaro, Querétaro, Mexico
+- [ ] https://mx.linkedin.com/jobs/view/practicante-ingenier%C3%ADa-industrial-at-imi-4461285360 | IMI | Practicante Ingeniería Industrial | Querétaro, Querétaro, Mexico
+- [ ] https://mx.linkedin.com/jobs/view/becario-de-ingenier%C3%ADa-industrial-at-televisaunivision-4462454329 | TelevisaUnivision | Becario de Ingeniería Industrial | Mexico City Metropolitan Area
+- [ ] https://mx.linkedin.com/jobs/view/becario-introduccion-de-nuevos-productos-ingenieria-at-jabil-4457618974 | Jabil | Becario Introduccion de Nuevos Productos (Ingenieria) | Zapopan, Jalisco, Mexico
+- [ ] https://mx.linkedin.com/jobs/view/materials-application-engineer-intern-at-ge-aerospace-4449415542 | GE Aerospace | Materials Application Engineer Intern | Querétaro, Querétaro, Mexico
+- [ ] https://mx.linkedin.com/jobs/view/becario-de-ingenieria-de-pruebas-at-jabil-4457638563 | Jabil | Becario de ingenieria de pruebas | Zapopan, Jalisco, Mexico
+- [ ] https://mx.linkedin.com/jobs/view/intern-industrial-engineering-at-benchmark-4459885151 | Benchmark | Intern - Industrial Engineering | El Salto, Jalisco, Mexico
+- [ ] https://mx.linkedin.com/jobs/view/internship-continuous-improvement-quality-production-ohs-logistics-automation-at-tetra-pak-4459236899 | Tetra Pak | Internship: Continuous Improvement // Quality // Production // OHS // Logistics // Automation | Querétaro, Querétaro, Mexico
+- [ ] https://mx.linkedin.com/jobs/view/becario-de-ingenier%C3%ADa-civil-at-capital-becarios-4460621186 | Capital Becarios | Becario de ingeniería civil | Mexico City Metropolitan Area
+- [ ] https://mx.linkedin.com/jobs/view/digital-transformation-internship-at-hewlett-packard-enterprise-4460581640 | Hewlett Packard Enterprise | Digital transformation internship | Tlajomulco de Zúñiga, Jalisco, Mexico
+- [ ] https://mx.linkedin.com/jobs/view/practicante-de-proyectos-at-safran-4462423270 | Safran | Practicante de Proyectos | Colón, Querétaro, Mexico
+- [ ] https://mx.linkedin.com/jobs/view/becario-at-inversa-instalaciones-integrales-4460105541 | Inversa Instalaciones Integrales | BECARIO | Zapopan, Jalisco, Mexico
+- [ ] https://mx.linkedin.com/jobs/view/ai-engineer-intern-trainee-at-pwc-m%C3%A9xico-4459293967 | PwC México | AI Engineer - Intern/Trainee | Mexico City, Mexico
+- [ ] https://mx.linkedin.com/jobs/view/becario-de-calidad-cdmx-at-sener-4460993293 | Sener | Becario de Calidad / CDMX | Mexico City, Mexico
+- [ ] https://mx.linkedin.com/jobs/view/becario-at-greenergy-power-4462441519 | Greenergy Power | Becario | Querétaro, Querétaro, Mexico
+- [ ] https://mx.linkedin.com/jobs/view/practicante-de-calidad-ingenier%C3%ADa-industrial-at-kostal-group-4459902104 | KOSTAL Group | Practicante de calidad- Ingeniería Industrial | Querétaro, Querétaro, Mexico
+- [ ] https://mx.linkedin.com/jobs/view/becario-de-mantenimiento-at-intenance-4460066207 | INTENANCE | Becario de mantenimiento | Querétaro, Mexico
+- [ ] https://mx.linkedin.com/jobs/view/becario-de-procesos-y-operaciones-log%C3%ADsticas-at-roche-4459680868 | Roche | Becario de Procesos y Operaciones Logísticas | Mexico City Metropolitan Area
+- [ ] https://mx.linkedin.com/jobs/view/becario-planning-service-center-nestl%C3%A9-at-nestl%C3%A9-4460618524 | Nestlé | Becario Planning Service Center / Nestlé | Miguel Hidalgo, Mexico City, Mexico
+- [ ] https://mx.linkedin.com/jobs/view/intern-product-support-telco-tablets-at-lenovo-4458303957 | Lenovo | Intern Product Support Telco & Tablets | Mexico City Metropolitan Area
+- [ ] https://mx.linkedin.com/jobs/view/becario-de-supply-chain-at-abbott-4440526600 | Abbott | Becario de Supply Chain | Mexico City, Mexico
+- [ ] https://mx.linkedin.com/jobs/view/solutions-intern-at-ingredion-incorporated-4462461031 | Ingredion Incorporated | Solutions Intern | Mexico City Metropolitan Area
+- [ ] https://mx.linkedin.com/jobs/view/purchasing-student-intern-at-general-motors-de-m%C3%A9xico-4460865257 | General Motors de México | Purchasing Student Intern | Mexico City Metropolitan Area
+
+- [ ] https://mx.linkedin.com/jobs/view/intern-en-ingenier%C3%ADa-industrial-mp-ans-at-aumovio-4477863613 | AUMOVIO | Intern en Ingeniería Industrial - MP ANS | La Tijera, Jalisco, Mexico
+- [ ] https://mx.linkedin.com/jobs/view/intern-en-ingenier%C3%ADa-de-calidad-at-aumovio-4477859887 | AUMOVIO | Intern en Ingeniería de Calidad | Guadalajara, Mexico Metropolitan Area
+- [ ] https://mx.linkedin.com/jobs/view/practicante-de-ingenier%C3%ADa-at-watlow-4480717359 | Watlow | Practicante de Ingeniería | La Cañada, Querétaro, Mexico
+- [ ] https://mx.linkedin.com/jobs/view/finance-engineer-internship-at-hewlett-packard-enterprise-4480310899 | Hewlett Packard Enterprise | Finance Engineer - Internship | Álvaro Obregón, Mexico City, Mexico
+- [ ] https://mx.linkedin.com/jobs/view/becario-ingenier%C3%ADa-industrial-calidad-y-mejora-continua-at-evenplan-tu-gente-4481771979 | Evenplan Tu Gente | Becario Ingeniería Industrial: Calidad y Mejora Continua | El Salto, Jalisco, Mexico
+- [ ] https://mx.linkedin.com/jobs/view/practicante-lean-manufacturing-tpm-mantenimiento-productivo-total-at-kostal-group-4477703755 | KOSTAL Group | PRACTICANTE LEAN MANUFACTURING - TPM (Mantenimiento Productivo Total) | Querétaro, Querétaro, Mexico
+- [ ] https://mx.linkedin.com/jobs/view/becario-de-operacion-y-produccion-manufactura-at-grupo-salav-4482027680 | Grupo SALAV | Becario de Operacion y Produccion Manufactura | Gustavo A. Madero, Mexico City, Mexico
+- [ ] https://mx.linkedin.com/jobs/view/becario-a-de-ingenier%C3%ADa-civil-ingenier%C3%ADa-ferroviaria-o-arquitectura-%E2%80%93-cdmx-at-sener-4481584993 | Sener | Becario/a de Ingeniería Civil, Ingeniería Ferroviaria o Arquitectura – CDMX | Mexico City, Mexico
+- [ ] https://mx.linkedin.com/jobs/view/intern-quality-assurance-at-bombardier-4480181933 | Bombardier | Intern, Quality Assurance | Colón, Querétaro, Mexico
+- [ ] https://mx.linkedin.com/jobs/view/practicante-ingenier%C3%ADa-financiera-at-ja-del-r%C3%ADo-4480721438 | JA Del Río | Practicante Ingeniería Financiera | Mexico City Metropolitan Area
+- [ ] https://mx.linkedin.com/jobs/view/cost-project-management-intern-early-career-programme-only-students-at-turner-townsend-4478491447 | Turner & Townsend | Cost & Project Management Intern - Early Career Programme (ONLY STUDENTS) | Mexico City, Mexico
+- [ ] https://mx.linkedin.com/jobs/view/becario-it-digital-at-nestl%C3%A9-4467614790 | Nestlé | Becario IT&Digital | Miguel Hidalgo, Mexico City, Mexico
+- [ ] https://mx.linkedin.com/jobs/view/intern-project-management-at-ge-vernova-4481501329 | GE Vernova | Intern Project Management | Mexico City, Mexico
+- [ ] https://mx.linkedin.com/jobs/view/critical-accounts-manager-i-intern-mexico-at-cisco-4480412894 | Cisco | Critical Accounts Manager I (Intern) - Mexico | Mexico City Metropolitan Area
+
+## Processed
+- [x] #305 | https://intel.wd1.myworkdayjobs.com/External/job/Mexico-Guadalajara/AI-Frameworks-Engineer---Intern_JR0288217 | Intel | AI Frameworks Engineer - Intern | 4.9/5 | PDF OK
+- [x] #305 | https://mx.linkedin.com/jobs/view/ai-frameworks-engineer-intern-at-intel-4478862001 | Intel | AI Frameworks Engineer - Intern | 4.9/5 | PDF OK
+- [x] #306 | https://mx.linkedin.com/jobs/view/robotics-engineer-at-cantera-4479561136 | Cantera | Robotics Engineer | 4.8/5 | PDF OK
+- [x] #307 | https://intel.wd1.myworkdayjobs.com/External/job/Mexico-Guadalajara/Platform-Validation-Engineering-Intern_JR0287927 | Intel | Platform Validation Engineering Intern | 4.8/5 | PDF OK
+- [x] #307 | https://mx.linkedin.com/jobs/view/platform-validation-engineering-intern-at-intel-4478422385 | Intel | Platform Validation Engineering Intern | 4.8/5 | PDF OK
+- [x] #308 | https://www.amazon.jobs/en/jobs/10574927/software-development-engineer-intern-amazon-university-talent-acquisition | Amazon | Software Development Engineer Intern | 4.8/5 | PDF OK
+- [x] #309 | https://micron.wd1.myworkdayjobs.com/External/job/Jalisco-Mexico/DRAM-Product-Engineer-Yield---Quality--Intern-_JR112997-1 | Micron | DRAM Product Engineer Yield & Quality (Intern) | 4.7/5 | PDF OK
+- [x] #310 | https://intel.wd1.myworkdayjobs.com/External/job/Mexico-Guadalajara/Hardware-Design-Engineer--Temporary-position-_JR0288000 | Intel | Hardware Design Engineer (Temporary position) | 4.7/5 | PDF OK
+- [x] #311 | https://mx.linkedin.com/jobs/view/data-science-and-ai-digital-technology-intern-at-ge-aerospace-4480188714 | GE Aerospace | Data Science and AI Digital Technology Intern | 4.6/5 | PDF OK
+- [x] #312 | https://intel.wd1.myworkdayjobs.com/External/job/Mexico-Guadalajara/Silicon-Design---Flows-and-Methodology-Intern_JR0286647 | Intel | Silicon Design - Flows and Methodology Intern | 4.6/5 | PDF OK
+- [x] #313 | https://mx.linkedin.com/jobs/view/becario-ingenier%C3%ADa-de-producto-at-jabil-4479634437 | Jabil | Becario Ingeniería de Producto | 4.5/5 | PDF OK
+- [x] #314 | https://intel.wd1.myworkdayjobs.com/External/job/Mexico-Guadalajara/JR0286659-Lab-Test-Mechanical-Engineer--Temporary-position-_JR0286659 | Intel | Lab/Test Mechanical Engineer (Temporary position) | 4.5/5 | PDF OK
+- [x] #315 | https://mx.linkedin.com/jobs/view/mechanical-engineer-intern-at-honeywell-technologies-4480589293 | Honeywell Technologies | Mechanical Engineer Intern | 4.2/5 | PDF OK
+- [x] #316 | https://mx.linkedin.com/jobs/view/software-engineer-intern-at-deloitte-4479184033 | Deloitte | Software Engineer Intern | 4.2/5 | PDF OK
+- [x] #317 | https://mx.linkedin.com/jobs/view/test-engineer-intern-at-honeywell-technologies-4480588350 | Honeywell Technologies | Test Engineer Intern | 4.2/5 | PDF OK
+- [x] #318 | https://mx.linkedin.com/jobs/view/r-d-torque-converter-tcc-design-intern-at-schaeffler-4480191762 | Schaeffler | R&D Torque Converter - TCC Design Intern | 4.0/5 | PDF OK
+- [x] #319 | https://mx.linkedin.com/jobs/view/becario-de-desarrollo-y-renovaci%C3%B3n-de-productos-nestl%C3%A9-at-nestl%C3%A9-4480260892 | Nestlé | Becario de Desarrollo y Renovación de Productos | 3.8/5 | PDF OK
+- [x] #243 | https://mx.linkedin.com/jobs/view/flight-control-engineer-m-f-d-at-nova-sky-stories-4453007377 | Nova Sky Stories | Flight Control Engineer (m/f/d) | 4.6/5 | PDF OK
+- [x] #242 | https://grupodportenis.com/ | Grupo Dportenis | Analista de Sistemas – Corporativo | 5.0/5 | PDF OK
+- [x] #206 | https://micron.wd1.myworkdayjobs.com/External/job/Jalisco-Mexico/DRAM-IP-Development-Layout--Internship-_JR108219 | Micron Technology | DRAM IP Development Layout (Internship) | 4.9/5 | PDF ✅
+- [x] #207 | https://micron.wd1.myworkdayjobs.com/External/job/Jalisco-Mexico/DRAM-Layout-engineer--Intern-_JR108252 | Micron Technology | DRAM Layout engineer (Intern) | 4.9/5 | PDF ✅
+- [x] #208 | https://micron.wd1.myworkdayjobs.com/External/job/Jalisco-Mexico/DRAM-Design-Engineer--Intern-_JR108395 | Micron Technology | DRAM Design Engineer (Intern) | 4.9/5 | PDF ✅
+- [x] #209 | https://www.amazon.jobs/en/jobs/10522965/associate-corporate-counsel-international-stores-legal-mx | Servicios Comerciales Amazon Mexico | Associate Corporate Counsel | 1.0/5 | PDF ❌
+- [x] ~~https://intel.wd1.myworkdayjobs.com/External/job/Mexico-Guadalajara/SoC-Functional-Validation-Intern_JR0286018 | Intel (Guadalajara) | SoC Functional Validation Intern~~ — posting expired (liveness sweep)
+- [x] ~~https://nxp.wd3.myworkdayjobs.com/careers/job/Guadalajara/EMBEDDED-ENGINEERING---INTERN_R-10066395 | NXP Semiconductors (Guadalajara) | EMBEDDED ENGINEERING - INTERN~~ — posting expired (liveness sweep)
+
+- [x] #178 | https://mx.indeed.com/viewjob?jk=4add93a963fd9bee&hl=es | Micron | New College Grad - OPC Production Engineer Technician | 4.2/5 | PDF ✅
+- [x] #179 | https://mx.indeed.com/viewjob?jk=california-closets-ingeniero-diseno | California Closets | Ingeniero en diseño / Programador Jr. | 4.8/5 | PDF ✅
+- [x] #178 | https://mx.indeed.com/viewjob?jk=gema-talent-disenador-industrial | Gema Talent Hub | Diseñador Industrial (Inglés Intermedio) | 4.6/5 | PDF ✅
+- [x] #176 | https://mx.indeed.com/viewjob?jk=acute-talent-computer-vision | Acute Talent | COMPUTER VISION ENGINEER (Junior) | 4.8/5 | PDF ✅
+- [x] #188 | https://mx.linkedin.com/jobs/view/becario-de-ingenier%C3%ADa-de-pruebas-at-jabil-4456987654 | Jabil | Becario de ingeniería de pruebas / Becario DFX / DFA | 5.0/5 | PDF ✅
+- [x] #187 | https://micron.wd1.myworkdayjobs.com/External/job/Jalisco-Mexico/Design-Verification-Engineer-Intern_JR107487 | Micron Technology | Design Verification Engineer Intern | 4.9/5 | PDF ✅
+- [x] #186 | https://ge.wd5.myworkdayjobs.com/GE_Careers/job/Queretaro/SW-Tool-Integration-and-Development-Intern_R5037909 | GE Aerospace | SW Tool Integration and Development Intern | 4.8/5 | PDF ✅
+- [x] #185 | https://mx.linkedin.com/jobs/view/intern-flight-deck-performance-engineer-at-ge-aerospace-4456123456 | GE Aerospace | INTERN – Flight Deck Performance Engineer | 4.8/5 | PDF ✅
+- [x] #184 | https://micron.wd1.myworkdayjobs.com/External/job/Tlaquepaque-Mexico/New-College-Grad---OPC-Production-Engineer-Technician | Micron Technology | New College Grad - OPC Production Engineer Technician | 4.9/5 | PDF ✅
+- [x] #183 | https://mx.linkedin.com/jobs/view/intern-en-innovaci%C3%B3n-y-tecnolog%C3%ADa-at-aumovio-4453624543 | AUMOVIO | Intern en Innovación y Tecnología (Innovation Lab) | 5.0/5 | PDF ✅
+- [x] #182 | https://micron.wd1.myworkdayjobs.com/External/job/Jalisco-Mexico/DRAM-Design-Engineer--Intern-_JR108061 | Micron Technology | DRAM Design Engineer (Intern) | 4.9/5 | PDF ✅
+- [x] #181 | https://mx.indeed.com/viewjob?jk=machinecare-instructor-robotica | MachineCare Education | Instructor de Robótica para niños | 4.5/5 | PDF ✅
+- [x] #180 | https://www.talenteca.com/anuncio?j_id=6a4d27293800002e0048d2c3&source=indeed | Venteks (Talento Hábil) | Ingeniero de Desarrollo de Firmware | 5.0/5 | PDF ✅
+- [x] #182 | https://mx.linkedin.com/jobs/view/intern-en-innovaci%C3%B3n-y-tecnolog%C3%ADa-at-aumovio-4453624543 | AUMOVIO | Intern en Innovación y Tecnología | 4.8/5 | PDF ✅
+- [x] #184 | https://mx.linkedin.com/jobs/view/becario-de-ingenier%C3%ADa-de-producto-at-jabil-4451928956 | Jabil | Becario de Ingeniería de Producto | 3.8/5 | PDF ✅
+- [x] #186 | https://mx.linkedin.com/jobs/view/becario-de-ingenieria-miguel-hidalgo-cdmx-at-toshiba-global-commerce-solutions-4449303700 | Toshiba Global Commerce Solutions | Becario de Ingenieria - Miguel Hidalgo, CDMX | 3.8/5 | PDF ✅
+- [x] #187 | https://mx.linkedin.com/jobs/view/becario-at-sinergic-energy-solutions-4454774387 | Sinergic Energy Solutions | Becario | 3.6/5 | PDF ✅
+- [x] #189 | https://mx.linkedin.com/jobs/view/practicante-de-procesos-at-kostal-group-4436957292 | KOSTAL Group | Practicante de Procesos | 3.7/5 | PDF ✅
+- [x] #190 | https://mx.linkedin.com/jobs/view/corn-syrup-refineries-intern-at-ingredion-incorporated-4454840157 | Ingredion Incorporated | Corn Syrup Refineries Intern | 1.8/5 | PDF ❌
+- [x] #193 | https://mx.linkedin.com/jobs/view/becario-de-ingenier%C3%ADa-de-sistemas-at-retorno-logistico-qro-4455376817 | Retorno Logistico Qro | Becario de ingeniería de sistemas | 2.7/5 | PDF ❌
+- [x] #194 | https://mx.linkedin.com/jobs/view/becario-de-ti-at-pyramid-consulting-inc-4454561781 | Pyramid Consulting, Inc | Becario de TI | 3.8/5 | PDF ✅
+- [x] #199 | https://micron.wd1.myworkdayjobs.com/External/job/Jalisco-Mexico/DRAM-Design-Engineer--Intern-_JR108061 | Micron Technology | DRAM Design Engineer (Intern) | 4.4/5 | PDF ✅
+- [x] #200 | https://micron.wd1.myworkdayjobs.com/External/job/Jalisco-Mexico/Design-Verification-Engineer-Intern_JR107487 | Micron (Guadalajara) | Design Verification Engineer Intern | 4.2/5 | PDF ✅
+- [x] #181 | https://mx.linkedin.com/jobs/view/intern-new-programs-at-zf-group-4449889107 | ZF Group | Intern New Programs | 3.8/5 | PDF ✅
+- [x] #195 | https://mx.linkedin.com/jobs/view/safety-health-environmental-intern-at-leybold-4434688381 | Leybold | Safety, Health & Environmental Intern | 1.0/5 | PDF ❌
+- [x] #176 | https://mx.indeed.com/viewjob?jk=262f8df106f13040&hl=es | Elevia | Ingeniero Junior Hardware/Firmware – Proyecto Temporal | 4.8/5 | PDF ✅
+- [x] #183 | https://mx.linkedin.com/jobs/view/becario-de-ingenier%C3%ADa-civil-at-grupo-arqro-4454779537 | Grupo ARQRO | Becario de ingeniería civil | 1.0/5 | PDF ❌
+- [x] #188 | https://mx.linkedin.com/jobs/view/practicante-mro-at-airbus-4452311287 | Airbus | Practicante MRO | 3.3/5 | PDF ✅
+- [x] #185 | https://mx.linkedin.com/jobs/view/lean-challenge-intern-2026-at-schaeffler-4455544927 | Schaeffler | Lean Challenge Intern 2026 | 3.2/5 | PDF ✅
+- [x] #192 | https://mx.linkedin.com/jobs/view/practicante-de-pes-at-safran-4455783721 | Safran | Practicante de PES | 3.5/5 | PDF ✅
+- [x] #179 | https://mx.linkedin.com/jobs/view/intern-manufacturing-at-zf-group-4449883172 | ZF Group | Intern Manufacturing | 3.5/5 | PDF ✅
+- [x] #191 | https://mx.linkedin.com/jobs/view/becario-de-producci%C3%B3n-at-tenneco-4454803277 | Tenneco | Becario de producción | 3.5/5 | PDF ✅
+- [x] #197 | https://mx.linkedin.com/jobs/view/becario-de-ti-at-thermomix-m%C3%A9xico-vorwerk-4454291956 | Thermomix México - Vorwerk | Becario de TI | 1.5/5 | PDF ❌
+- [x] #198 | https://www.amazon.jobs/en/jobs/10501130/sr-capital-planning-manager-international-capital-planning-and-governance | Servicios Comerciales Amazon Mexico | Sr Capital Planning Manager | 1.0/5 | PDF ❌
+- [x] #196 | https://mx.linkedin.com/jobs/view/becario-de-ehs-para-subestaciones-el%C3%A9ctricas-at-flex-4444056113 | Flex | Becario de EHS para Subestaciones Eléctricas | 1.5/5 | PDF ❌
+- [x] ~~https://intel.wd1.myworkdayjobs.com/External/job/Mexico-Guadalajara/Systems-Software-Engineer-with-uArch-Expertise--Temporary-Position_JR0286208 | Intel (Guadalajara) | Systems Software Engineer with uArch Expertise- Temporary Position | Mexico, Guadalajara~~ — posting expired (liveness sweep)
+- [x] ~~https://intel.wd1.myworkdayjobs.com/External/job/Mexico-Guadalajara/Software-Engineer--Intern-_JR0286207-1 | Intel (Guadalajara) | Software Engineer (Intern) | Mexico, Guadalajara~~ — posting expired (liveness sweep)
+- [x] #175 | https://www.micron.com/careers/job/JR104695 | Micron Technology | New College Grad - HBM Analog Verification Engineer | 4.8/5 | PDF ✅
+- [x] #174 | https://mx.indeed.com/viewjob?jk=aerobot-planet-iteso | Aerobot Planet (AEROLAB CENTER ITESO) | Profesor de Robótica STEAM (Maker) | 5.0/5 | PDF ✅
+- [x] #172 | local:/home/opyntorr/Downloads/New College Grad - OPC Production Engineer Technician - Tlaquepaque, Jal. - Indeed.com.html | Micron Technology | New College Grad - OPC Production Engineer Technician | 4.5/5 | PDF ✅
+- [x] #173 | local:/home/opyntorr/Downloads/Ingeniero de Hardware (AI-Augmented) — Electrónica, Mecatrónica, Electromecánica o afín - 62270, Lomas de La Selva, Mor. - Indeed.com.html | iTire | Ingeniero de Hardware (AI-Augmented) | 4.5/5 | PDF ✅
+- [x] #171 | local:/home/opyntorr/Downloads/Ingeniero Junior Hardware_Firmware – Proyecto Temporal - Ciudad Juárez, Chih. - Indeed.com.html | Empresa Embebida | Ingeniero Junior Hardware/Firmware | 4.8/5 | PDF ✅
+- [x] #163 | local:/home/opyntorr/Downloads/Development Tools Software Intern - Guadalajara, Jal. - Indeed.com.html | Intel (Guadalajara) | Development Tools Software Intern | 4.5/5 | PDF ✅
+- [x] #164 | local:/home/opyntorr/Downloads/Cinemática del robot - 45559, Tlaquepaque, Jal. - Indeed.com.html | UNITEC | Docente Cinemática del robot | 4.5/5 | PDF ✅
+- [x] #165 | local:/home/opyntorr/Downloads/Estudiantes ó Recien Egresados para clase Tecnología_Robótica Educativa_STEM en Colegio - 44670, Prados de Providencia, Jal. - Indeed.com.html | Colegio Privado | Instructor Robótica Educativa & STEM | 4.5/5 | PDF ✅
+- [x] #166 | local:/home/opyntorr/Downloads/Integrador de SW Embebido - Guadalajara, Jal. - Indeed.com.html | Bosch | Integrador de SW Embebido | 4.2/5 | PDF ✅
+- [x] #167 | local:/home/opyntorr/Downloads/Licenciado_ Ingeniero en Mecatrónica, Electrónica, Robótica o Sistemas Computacionales para dodencia - 45400, Ricardo Flores Magón, Jal. - Indeed.com.html | Centro Universitario UNE | Docente Mecatrónica/Robótica | 4.0/5 | PDF ✅
+- [x] #161 | local:/home/opyntorr/Downloads/Hardware Engineer - 45070, El Colli Urbano 1a. Sección, Jal. - Indeed.com.html | SILBIT - R&D | Hardware Engineer | 4.8/5 | PDF ✅
+- [x] #162 | local:/home/opyntorr/Downloads/Ingeniero de software embebido - Zapopan, Jal. - Indeed.com.html | Venteks | Ingeniero de Sistemas Embebidos | 4.8/5 | PDF ✅
+- [x] #160 | https://mx.indeed.com/viewjob?jk=0dd0279e115b2545 | Bosch | Embedded Software Engineer Jr | 4.8/5 | PDF ✅
+- [x] #148 | https://mx.linkedin.com/jobs/view/electronics-engineer-intern-at-radwell-international-4444217338 | Radwell International | Electronics Engineer (intern) | 4.8/5 | PDF ✅
+- [x] #149 | https://mx.linkedin.com/jobs/view/product-support-engineering-intern-at-ge-aerospace-4445229087 | GE Aerospace | Product Support Engineering Intern | 4.5/5 | PDF ✅
+- [x] #150 | https://mx.linkedin.com/jobs/view/engineering-internship-p-g-cdmx-plants-at-procter-gamble-4443997703 | Procter & Gamble | Engineering Internship - P&G CDMX Plants | 4.5/5 | PDF ✅
+- [x] #151 | https://mx.linkedin.com/jobs/view/becario-a-de-ing-aeroportuaria-planeaci%C3%B3n-y-dise%C3%B1o-de-infraestructura-cdmx-at-sener-aerospace-defence-4434212363 | Sener Aerospace & Defence | Becario(a) de Ing. Aeroportuaria | 4.0/5 | PDF ✅
+- [x] #152 | https://mx.linkedin.com/jobs/view/estudiantes-ingenier%C3%ADa-en-sistemas-at-el-puerto-de-liverpool-4444726110 | El Puerto de Liverpool | Estudiantes Ingeniería en Sistemas | 4.0/5 | PDF ✅
+- [x] #153 | https://mx.linkedin.com/jobs/view/practicante-at-grupo-alen-4441086232 | Grupo AlEn | PRACTICANTE | 3.5/5 | PDF ❌
+- [x] #154 | https://mx.linkedin.com/jobs/view/becario-a-ingenier%C3%ADa-ferroviaria-at-sener-4406660314 | Sener | Becario/a Ingeniería Ferroviaria | 3.5/5 | PDF ❌
+- [x] #155 | https://mx.linkedin.com/jobs/view/practicante-de-mejora-continua-at-kostal-group-4418005634 | KOSTAL Group | PRACTICANTE DE MEJORA CONTINUA | 3.2/5 | PDF ❌
+- [x] #156 | https://mx.linkedin.com/jobs/view/becario-a-pr%C3%A1cticas-profesionales-performance-soporte-central-at-holcim-m%C3%A9xico-4444237435 | Holcim México | Becario/a Prácticas Profesionales - Performance | 3.0/5 | PDF ❌
+- [x] #157 | https://mx.linkedin.com/jobs/view/becario-ing-industrial-at-grupo-plasencia-4441515723 | Grupo Plasencia | Becario Ing. Industrial | 3.0/5 | PDF ❌
+- [x] #158 | https://mx.linkedin.com/jobs/view/becario-de-calidad-cdmx-at-sener-4418651991 | Sener | Becario de Calidad / CDMX | 3.0/5 | PDF ❌
+- [x] #159 | https://mx.linkedin.com/jobs/view/engineering-internship-p-g-cdmx-plants-at-procter-gamble-mexico-4441070661 | Procter & Gamble Mexico | Engineering Internship - P&G CDMX Plants | 1.5/5 | PDF ❌ (Duplicado)
+- [x] #147 | https://mx.linkedin.com/jobs/view/practicante-at-bombardier-4443700934 | Bombardier | Practicante | 4.2/5 | PDF ✅
+- [x] #139 | https://mx.linkedin.com/jobs/view/practicante-de-ingenier%C3%ADa-at-siemens-4442960680 | Siemens | Practicante de Ingeniería | 4.2/5 | PDF ✅
+- [x] #140 | https://mx.linkedin.com/jobs/view/automation-intern-at-schaeffler-4435190570 | Schaeffler | Automation Intern | 1.5/5 | PDF ❌ (Filtrado: Becario fuera de GDL)
+- [x] #141 | https://mx.linkedin.com/jobs/view/intern-at-schaeffler-4435305136 | Schaeffler | Intern | 1.5/5 | PDF ❌ (Filtrado: Becario fuera de GDL)
+- [x] #142 | https://mx.linkedin.com/jobs/view/internship-in-engineering-at-core-molding-technologies-4443935433 | Core Molding Technologies | Internship In Engineering | 1.5/5 | PDF ❌ (Filtrado: Becario fuera de GDL)
+- [x] #143 | https://mx.linkedin.com/jobs/view/practicante-de-calidad-at-joyson-safety-systems-4443966885 | Joyson Safety Systems | Practicante de Calidad | 1.5/5 | PDF ❌ (Filtrado: Becario fuera de GDL)
+- [x] #144 | https://mx.linkedin.com/jobs/view/becario-de-tecnolog%C3%ADa-y-gesti%C3%B3n-de-proyectos-it-at-nestl%C3%A9-4440261436 | Nestlé | Becario de Tecnología y Gestión de Proyectos (IT) | 1.5/5 | PDF ❌ (Filtrado: Becario fuera de GDL)
+- [x] #145 | https://mx.linkedin.com/jobs/view/exhaust-pe-support-intern-at-borgwarner-4443175413 | BorgWarner | Exhaust PE Support intern | 1.5/5 | PDF ❌ (Filtrado: Becario fuera de GDL)
+- [x] #146 | https://mx.linkedin.com/jobs/view/cen-product-deployment-intern-at-cemex-4431972859 | Cemex | (CEN) PRODUCT DEPLOYMENT INTERN | 1.5/5 | PDF ❌ (Filtrado: Becario fuera de GDL)
+- [x] #100 | https://mx.linkedin.com/jobs/view/intern-performance-engineering-latam-at-ge-vernova-4443703071 | GE Vernova | Intern - Performance Engineering - LATAM | 4.5/5 | PDF ✅
+- [x] #101 | https://mx.linkedin.com/jobs/view/intern-%E2%80%93-flight-deck-performance-engineer-at-ge-aerospace-4442779410 | GE Aerospace | INTERN – Flight Deck Performance Engineer | 4.2/5 | PDF ✅
+- [x] #102 | https://mx.linkedin.com/jobs/view/practicante-de-ingenier%C3%ADa-at-magna-international-4433887761 | Magna International | Practicante de Ingeniería | 1.5/5 | PDF ❌
+- [x] #103 | https://mx.linkedin.com/jobs/view/practicante-de-ingenier%C3%ADa-de-procesos-at-johnson-matthey-4411543442 | Johnson Matthey | Practicante de Ingeniería de Procesos | 3.5/5 | PDF ✅
+- [x] #104 | https://mx.linkedin.com/jobs/view/practicante-mejora-continua-at-kohler-co-4441278621 | Kohler Co. | Practicante Mejora Continua | 2.5/5 | PDF ❌
+- [x] #105 | https://mx.linkedin.com/jobs/view/intern-at-hussmann-4441008582 | Hussmann | Intern | 3.5/5 | PDF ✅
+- [x] #106 | https://mx.linkedin.com/jobs/view/practicante-de-mejora-continua-at-kohler-co-4441288195 | Kohler Co. | Practicante de Mejora Continua | 3.5/5 | PDF ✅
+- [x] #107 | https://mx.linkedin.com/jobs/view/practicante-de-ingenieria-industrial-at-corning-incorporated-4438442383 | Corning Incorporated | Practicante de Ingenieria Industrial | 3.5/5 | PDF ✅
+- [x] #108 | https://mx.linkedin.com/jobs/view/practicante-de-ingenieria-at-corning-incorporated-4438749919 | Corning Incorporated | Practicante de ingenieria | 3.5/5 | PDF ✅
+- [x] #109 | https://mx.linkedin.com/jobs/view/becario-ingenieria-pac-at-nestl%C3%A9-4440259489 | Nestlé | Becario Ingenieria PAC | 2/5 | PDF ❌
+- [x] #110 | https://mx.linkedin.com/jobs/view/practicante-de-ingenieria-hsio-cable-assemblies-at-amphenol-4438423823 | Amphenol | Practicante de Ingenieria (HSIO CABLE ASSEMBLIES) | 3.5/5 | PDF ✅
+- [x] #111 | https://mx.linkedin.com/jobs/view/practicante-de-ingenier%C3%ADa-at-hunter-douglas-inc-4441312781 | Hunter Douglas, Inc. | Practicante de Ingeniería | 3.5/5 | PDF ✅
+- [x] #112 | https://mx.linkedin.com/jobs/view/practicante-de-ingenieria-at-qnity-4442167210 | Qnity | Practicante de ingenieria | 3.5/5 | PDF ✅
+- [x] #113 | https://mx.linkedin.com/jobs/view/practicante-de-manufactura-at-stanley-black-decker-inc-4442178956 | Stanley Black & Decker, Inc. | Practicante de Manufactura | 3.5/5 | PDF ✅
+- [x] #114 | https://mx.linkedin.com/jobs/view/becario-servicios-industriales-at-nestl%C3%A9-4440256658 | Nestlé | Becario Servicios Industriales | 3.5/5 | PDF ✅
+- [x] #115 | https://mx.linkedin.com/jobs/view/intern-product-definition-engineer-composites-at-ge-aerospace-4441900339 | GE Aerospace | Intern Product Definition Engineer - Composites | 4.2/5 | PDF ✅
+- [x] #116 | https://mx.linkedin.com/jobs/view/practicante-de-manufactura-at-crown-holdings-inc-4443541425 | Crown Holdings, Inc. | PRACTICANTE DE MANUFACTURA | 3.5/5 | PDF ✅
+- [x] #117 | https://mx.linkedin.com/jobs/view/mle-intern-at-metso-4440769513 | Metso | MLE Intern | 3.5/5 | PDF ✅
+- [x] #118 | https://mx.linkedin.com/jobs/view/intern-planetary-area-at-schaeffler-4433387151 | Schaeffler | Intern - Planetary Area | 1.5/5 | PDF ❌
+- [x] #119 | https://mx.linkedin.com/jobs/view/becario-de-ingenier%C3%ADa-industrial-at-pennengineering%C2%AE-4442900670 | PennEngineering® | Becario de ingeniería industrial | 4.5/5 | PDF ✅
+- [x] #120 | https://mx.linkedin.com/jobs/view/becario-de-producci%C3%B3n-at-lindal-group-4438737902 | LINDAL Group | Becario de Producción | 3.5/5 | PDF ✅
+- [x] #121 | https://mx.linkedin.com/jobs/view/engineering-student-at-footprint-4441325100 | Footprint | Engineering Student | 3.5/5 | PDF ✅
+- [x] #122 | https://mx.linkedin.com/jobs/view/practicante-de-ingenieria-at-cummins-latin-america-4442285580 | Cummins Latin America | Practicante de Ingenieria | 3.5/5 | PDF ✅
+- [x] #123 | https://mx.linkedin.com/jobs/view/practicante-de-cadena-de-suministro-at-volvo-buses-4443583235 | Volvo Buses | Practicante de Cadena de Suministro | 4.5/5 | PDF ✅
+- [x] #124 | https://mx.linkedin.com/jobs/view/robotics-automation-trainee-at-brp-4438441855 | BRP | Robotics & Automation Trainee | 4.5/5 | PDF ✅
+- [x] #125 | https://mx.linkedin.com/jobs/view/intern-mantenimiento-at-ge-vernova-4443589394 | GE Vernova | Intern - Mantenimiento | 3.5/5 | PDF ✅
+- [x] #126 | https://mx.linkedin.com/jobs/view/intern-general-engineering-at-yazaki-north-america-4075124417 | Yazaki North America | Intern, General Engineering | 2.5/5 | PDF ❌
+- [x] #127 | https://mx.linkedin.com/jobs/view/practicante-ingenier%C3%ADa-vehicular-at-sigma-4441356153 | Sigma | Practicante Ingeniería Vehicular | 3.5/5 | PDF ✅
+- [x] #128 | https://mx.linkedin.com/jobs/view/practicante-de-mejora-continua-at-valmont-industries-inc-4442121235 | Valmont Industries, Inc. | Practicante de Mejora Continua | 2.5/5 | PDF ❌
+- [x] #129 | https://mx.linkedin.com/jobs/view/engineering-intern-at-donaldson-4443550471 | Donaldson | Engineering Intern | 3.5/5 | PDF ✅
+- [x] #130 | https://mx.linkedin.com/jobs/view/practicante-de-ingenier%C3%ADa-estandarizaci%C3%B3n-ensamble-at-milwaukee-tool-4438428380 | Milwaukee Tool | Practicante de Ingeniería (Estandarización) - Ensamble | 3.5/5 | PDF ✅
+- [x] #131 | https://mx.linkedin.com/jobs/view/becario-at-safran-4441252769 | Safran | Becario | 2/5 | PDF ❌
+- [x] #132 | https://mx.linkedin.com/jobs/view/practicante-de-ingenier%C3%ADa-productividad-ensamble-at-milwaukee-tool-4438429386 | Milwaukee Tool | Practicante de Ingeniería (Productividad) - Ensamble | 3.5/5 | PDF ✅
+- [x] #133 | https://mx.linkedin.com/jobs/view/practicante-en-procesos-administrativos-y-mejora-continua-at-daimler-truck-m%C3%A9xico-4441205133 | Daimler Truck México | Practicante en Procesos Administrativos y Mejora Continua | 3.5/5 | PDF ✅
+- [x] #134 | https://mx.linkedin.com/jobs/view/automotive-product-application-intern-chassis-systems-at-schaeffler-4434752187 | Schaeffler | Automotive Product Application Intern - Chassis Systems | 4.5/5 | PDF ✅
+- [x] #135 | https://mx.linkedin.com/jobs/view/intern-quality-engineering-at-swbc-mexico-4414674447 | SWBC Mexico | Intern - Quality Engineering | 2.5/5 | PDF ❌
+- [x] #136 | https://mx.linkedin.com/jobs/view/practicante-de-digitalizaci%C3%B3n-y-procesos-at-linde-4442214430 | Linde | Practicante de Digitalización y Procesos | 2.5/5 | PDF ❌
+- [x] #137 | https://intel.wd1.myworkdayjobs.com/External/job/US-New-Mexico-Albuquerque/New-Mexico-Manufacturing-Technician-Internship_JR0284246 | Intel (Guadalajara) | New Mexico Manufacturing Technician Internship | 1.5/5 | PDF ❌
+- [x] #138 | https://intel.wd1.myworkdayjobs.com/External/job/US-New-Mexico-Albuquerque/New-Mexico-WPM-Manufacturing-Technician-Internship_JR0285454 | Intel (Guadalajara) | New Mexico WPM Manufacturing Technician Internship | 1.5/5 | PDF ❌
+ [x] #099 | https://intel.wd1.myworkdayjobs.com/External/job/Mexico-Guadalajara/DDR-PHY-Firmware-Engineer_JR0285805 | Intel (Guadalajara) | DDR PHY Firmware Engineer | 2.5/5 | PDF ❌
+- [x] #098 | https://mx.linkedin.com/jobs/view/becario-de-proyectos-industriales-at-dhl-global-forwarding-4443001205 | DHL Global Forwarding | Becario de proyectos industriales | 1.8/5 | PDF ❌
+- [x] #097 | https://mx.linkedin.com/jobs/view/information-technology-intern-at-go-talent-mx-4442244160 | Go Talent MX | Information Technology Intern | 2.0/5 | PDF ❌
+- [x] #096 | https://mx.linkedin.com/jobs/view/intern-manufacturing-at-plexus-corp-4439334645 | Plexus Corp. | Intern - Manufacturing | 4.0/5 | PDF ✅
+- [x] #095 | https://mx.linkedin.com/jobs/view/forward-deployed-engineer-intern-at-arkham-technologies-4443594394 | Arkham Technologies | Forward Deployed Engineer Intern | 4.2/5 | PDF ✅
+- [x] #094 | https://mx.linkedin.com/jobs/view/software-development-engineer-internship-mexico-city-at-amazon-4443038922 | Amazon | Software Development Engineer Internship, Mexico City | 4.5/5 | PDF ✅
+- [x] #093 | https://mx.linkedin.com/jobs/view/becario-de-ingenier%C3%ADa-at-synergo-4441027269 | Synergo | Becario de ingeniería | 1.5/5 | PDF ❌
+- [x] #092 | https://mx.linkedin.com/jobs/view/becario-a-de-automatizaci%C3%B3n-y-an%C3%A1lisis-de-procesos-at-nestl%C3%A9-4440272098 | Nestlé | Becario(a) de Automatización y Análisis de Procesos | 2.0/5 | PDF ❌
+- [x] #091 | https://mx.linkedin.com/jobs/view/strategic-student-program-ssp-systems-modeling-intern-at-siemens-digital-industries-software-4424047235 | Siemens Digital Industries Software | Strategic Student Program (SSP) - Systems Modeling Intern | 4.5/5 | PDF ✅
+- [x] #090 | https://mx.linkedin.com/jobs/view/strategic-student-program-ssp-application-support-engineer-intern-at-siemens-digital-industries-software-4374099120 | Siemens Digital Industries Software | Strategic Student Program (SSP) - Application Support Engineer Intern | 4.0/5 | PDF ✅
+- [x] #089 | https://mx.linkedin.com/jobs/view/becario-green-building-at-sgs-4438415184 | SGS | Becario Green Building | 2.0/5 | PDF ❌
+- [x] #088 | https://mx.linkedin.com/jobs/view/practicante-cds-at-coca-cola-femsa-4438421887 | Coca-Cola FEMSA | Practicante CDS | 3.0/5 | PDF ✅
+- [x] #087 | https://mx.linkedin.com/jobs/view/lean-digitalization-intern-at-zf-group-4440196603 | ZF Group | Lean Digitalization Intern | 3.8/5 | PDF ✅
+- [x] #086 | https://mx.linkedin.com/jobs/view/programa-de-becarios-nissan-school-at-nissan-motor-corporation-4407121207 | Nissan Motor Corporation | Programa de Becarios Nissan School | 3.5/5 | PDF ✅
+- [x] #085 | https://mx.linkedin.com/jobs/view/ai-industrial-intern-at-zf-group-4440181988 | ZF Group | AI Industrial Intern | 4.8/5 | PDF ✅
+- [x] #084 | https://mx.linkedin.com/jobs/view/becario-ingenieria-at-plastonium-4441277193 | Plastonium | BECARIO INGENIERIA | 4.0/5 | PDF ✅
+- [x] #083 | https://mx.linkedin.com/jobs/view/cloud-engineering-intern-at-hp-4442432334 | HP | Cloud Engineering Intern | 3.8/5 | PDF ✅
+- [x] #082 | https://www.amazon.jobs/en/jobs/10471667/reliability-maintenance-engineering-intern | Servicios Comerciales Amazon Mexico S. de R.L. de C.V. | Reliability, Maintenance & Engineering Intern | 3.8/5 | PDF ✅
+- [x] ~~https://mx.linkedin.com/jobs/view/reliability-maintenance-engineering-intern-at-amazon-4443039069~~ — Duplicate of #082 (Amazon Jobs)
+- [x] ~~https://intel.wd1.myworkdayjobs.com/External/job/Mexico-Guadalajara/System-Validation-Intern--Power-and-Performance-_JR0285548~~ — posting expired (liveness sweep)
+- [x] ~~https://nxp.wd3.myworkdayjobs.com/careers/job/Guadalajara/Hardware-Design---CAD-Engineer_R-10064940-1~~ — posting expired (liveness sweep)
+- [x] #081 | https://nxp.wd3.myworkdayjobs.com/en-US/careers/job/Guadalajara/Hardware-Design-Engineer_R-10064941 | NXP Semiconductors (Guadalajara) | Hardware Design Engineer | 3.8/5 | PDF ✅
+- [x] #071 | https://mx.linkedin.com/jobs/view/practicante-mro-at-airbus-helicopters-4413662063 | Airbus Helicopters Mexico | Practicante MRO | 3.5/5 | PDF ✅
+- [x] #073 | https://mx.linkedin.com/jobs/view/practicante-ingenier%C3%ADa-mantenimiento-at-airbus-helicopters-4413658182 | Airbus Helicopters | Practicante Ingeniería Mantenimiento | 4.5/5 | PDF ❌
+- [x] #072 | https://mx.linkedin.com/jobs/view/it-intern-trainee-at-pwc-m%C3%A9xico-4433121709 | PwC México | IT - Intern/ Trainee | 3.0/5 | PDF ✅
+- [x] #075 | https://mx.linkedin.com/jobs/view/intern-en-ingenier%C3%ADa-industrial-at-aumovio-4436417270 | AUMOVIO | Intern en Ingeniería Industrial | 4.0/5 | PDF ✅
+- [x] #074 | https://mx.linkedin.com/jobs/view/it-intern-r-at-sanmina-4437741063 | Sanmina | IT Intern | 2.0/5 | PDF ❌
+- [x] #069 | https://nxp.wd3.myworkdayjobs.com/careers/job/Guadalajara/Automotive-applications-student_R-10063050 | NXP Semiconductors (Guadalajara) | Automotive applications student | Guadalajara | 4.5/5 | PDF ✅
+- [x] #068 | https://intel.wd1.myworkdayjobs.com/External/job/Mexico-Guadalajara/Pre-Si-Systems-Intern_JR0283302 | Intel (Guadalajara) | Pre-Si Systems Intern | 3.4/5 | PDF ✅
+- [x] #066 | https://mx.linkedin.com/jobs/view/estudiantes-ing-en-sistemas-pruebas-funcionales-at-el-puerto-de-liverpool-4436414198 | El Puerto de Liverpool | Estudiantes Ing. en Sistemas, Pruebas Funcionales | 2.0/5 | PDF ❌
+- [x] #065 | https://mx.linkedin.com/jobs/view/ingeniero-en-desarrollo-de-firmware-at-venteks-4435708512 | Venteks | Ingeniero en desarrollo de firmware | 4.2/5 | PDF ✅
+- [x] #064 | https://intel.wd1.myworkdayjobs.com/External/job/Mexico-Guadalajara/AI-Tools-Development-Intern_JR0283292 | Intel (Guadalajara) | AI Tools Development Intern | 3.5/5 | PDF ✅
+- [x] #048 | https://intel.wd1.myworkdayjobs.com/External/job/Mexico-Guadalajara/High-Speed-SerDes-Simulation---Optimization-Intern---I-O-Next-Generation-R-D_JR0283294 | Intel (Guadalajara) | High-Speed SerDes Simulation & Optimization Intern — I/O Next Generation R&D | 3.5/5 | PDF ❌
+- [x] #049 | https://intel.wd1.myworkdayjobs.com/External/job/Mexico-Guadalajara/Software-Development-Intern--Automation-and-AI-Enablement-_JR0285207 | Intel | Software Development Intern (Automation and AI Enablement) | 4.2/5 | PDF ✅
+- [x] #057 | https://intel.wd1.myworkdayjobs.com/External/job/Mexico-Guadalajara/Design-Verification-Student-Worker_JR0283311 | Intel (Guadalajara) | Design Verification Student Worker | 2.0/5 | PDF ❌
+- [x] #052 | https://intel.wd1.myworkdayjobs.com/External/job/Mexico-Guadalajara/Memory-Validation-Intern_JR0283301 | Intel (Guadalajara) | Memory Validation Intern | 4.0/5 | PDF ✅
+- [x] #050 | https://mx.linkedin.com/jobs/view/development-tools-software-intern-at-intel-4435249734 | Intel | Development Tools Software Intern | 3.5/5 | PDF ✅
+- [x] #042 | https://mx.linkedin.com/jobs/view/software-development-engineer-internship-mexico-city-at-amazon-4335013094 | Amazon | Software Development Engineer Internship, Mexico City | 4.5/5 | PDF ✅
+- [x] #044 | https://intel.wd1.myworkdayjobs.com/External/job/Mexico-Guadalajara/Electrical-Validation-Intern_JR0285377 | Intel (Guadalajara) | Electrical Validation Intern | 4.0/5 | PDF ✅
+- [x] #033 | https://micron.wd1.myworkdayjobs.com/External/job/Jalisco-Mexico/Sr-Engineer-layout-Engineer--Memory-CAD--Guadalajara_JR101230 | Micron (Guadalajara) | Sr Engineer/layout Engineer, Memory CAD | 1.5/5 | PDF ❌
+- [x] #046 | https://mx.linkedin.com/jobs/view/hardware-applications-engineering-at-qualcomm-4436816002 | Qualcomm | Hardware Applications Engineering | 2.5/5 | PDF ❌
+- [x] #053 | https://intel.wd1.myworkdayjobs.com/External/job/Mexico-Guadalajara/Optical-Component-Link-Simulation-Student-Worker_JR0283296-1 | Intel (Guadalajara) | Optical Component Link Simulation Student Worker | 4.2/5 | PDF ✅
+- [x] #047 | https://mx.linkedin.com/jobs/view/software-development-engineer-internship-guadalajara-at-amazon-4334953021 | Amazon | Software Development Engineer Internship, Guadalajara | 3.5/5 | PDF ✅
+- [x] ~~https://mx.indeed.com/viewjob?from=app-tracker-saved-appcard&hl=es&jk=64b3ae1cd29343b1&tk=1jsq6o2mp22vg000~~ — Processed via local HTML
+- [x] ~~https://mx.indeed.com/viewjob?from=app-tracker-saved-appcard&hl=es&jk=63ed74411d329096&tk=1jsq6o2mp22vg000~~ — Processed via local HTML
+- [x] ~~https://mx.indeed.com/viewjob?from=app-tracker-saved-appcard&hl=es&jk=1d812a6c382d0804&tk=1jsq6o2mp22vg000~~ — Processed via local HTML
+- [x] ~~https://mx.indeed.com/viewjob?from=app-tracker-saved-appcard&hl=es&jk=5f5a51b8d43bc109&tk=1jsq6o2mp22vg000~~ — Processed via local HTML
+- [x] ~~https://mx.indeed.com/viewjob?from=app-tracker-saved-appcard&hl=es&jk=5f649e9185a0e04a&tk=1jsq6o2mp22vg000~~ — Processed via local HTML
+- [x] #005 | https://nxp.wd3.myworkdayjobs.com/careers/job/Guadalajara/Quantizer--Software-Engineer_R-10061520 | NXP Semiconductors (Guadalajara) | Edge AI Model Optimization Software Engineer | 4.2/5 | PDF ✅
+- [x] ~~https://nxp.wd3.myworkdayjobs.com/careers/job/Guadalajara/AI-Software-Engineer_R-10064278 | NXP Semiconductors (Guadalajara) | AI Software Engineer | Guadalajara~~ — posting expired (liveness sweep)
+- [x] #004 | https://intel.wd1.myworkdayjobs.com/External/job/Mexico-Guadalajara/Software-Engineering-Intern-for-Debug-Tools_JR0285205 | Intel (Guadalajara) | Software Engineering Intern for Debug Tools | 4.5/5 | PDF ✅
+- [x] #006 | https://mx.indeed.com/viewjob?from=app-tracker-saved-appcard&hl=es&jk=fd175a2b45dd2b54&tk=1jsq6o2mp22vg000 | Matching Talent RH | Ingeniero Biomédico / Electrónico por Proyecto | 2.4/5 | PDF ❌
+- [x] #008 | https://mx.indeed.com/viewjob?from=app-tracker-saved-appcard&hl=es&jk=d1754976c74dabfc&tk=1jsq6o2mp22vg000 | Confidential Electronics | Ingeniero de Desarrollo de Firmware | 4.2/5 | PDF ✅
+- [x] #007 | https://mx.indeed.com/viewjob?from=app-tracker-saved-appcard&hl=es&jk=9dd2b02c2f4320c0&tk=1jsq6o2mp22vg000 | Asia Robótica | Diseñador Técnico | 3.8/5 | PDF ✅
+- [x] #017 | https://micron.wd1.myworkdayjobs.com/External/job/Jalisco-Mexico/Sr-Engineer--Memory-CAD--Guadalajara_JR85768 | Micron (Guadalajara) | Sr Engineer, Memory CAD, Guadalajara | 2.0/5 | PDF ❌
+- [x] #018 | https://micron.wd1.myworkdayjobs.com/External/job/Jalisco-Mexico/Sr-Engineer-Layout-Engineer--Memory-CAD--Guadalajara_JR101231 | Micron (Guadalajara) | Sr Engineer/Layout Engineer, Memory CAD, Guadalajara | 2.5/5 | PDF ❌
+- [x] local:/home/opyntorr/Downloads/Licenciado o Ingeniero en Mecatrónica, Electrónica, Robótica o Sistemas Computacionales. - 45400, Ricardo Flores Magón, Jal. - Indeed.com.html
+- [x] local:/home/opyntorr/Downloads/Ingeniero en Mecatrónica - Tlajomulco, Jal. - Indeed.com.html
+- [x] local:/home/opyntorr/Downloads/Maestro(a) de Tecnología Secundaria - 45089, Residencial Victoria, Jal. - Indeed.com.html
+- [x] local:/home/opyntorr/Downloads/DISEÑADOR_ MODELADOR 3D - 44400, Gral. Real, Jal. - Indeed.com.html
+- [x] local:/home/opyntorr/Downloads/DISEÑADOR INDUSTRIAL - Zapopan, Jal. - Indeed.com.html
+- [x] local:/home/opyntorr/Downloads/Electronics & Hardware R&D Engineer - Guadalajara, Jal. - Indeed.com.html
+- [x] #043 | https://mx.linkedin.com/jobs/view/sw-development-intern-at-toshiba-global-commerce-solutions-4435727073 | Toshiba Global Commerce Solutions | SW Development Intern | 2.5/5 | PDF ❌
+- [x] #041 | https://intel.wd1.myworkdayjobs.com/External/job/Mexico-Guadalajara/Development-Tools-Software-Intern_JR0285211 | Intel (Guadalajara) | Development Tools Software Intern | 3.5/5 | PDF ✅
+- [x] #056 | https://intel.wd1.myworkdayjobs.com/External/job/Mexico-Guadalajara/Electrical-Validation-Engineering-Intern--Client-IO_JR0284202 | Intel (Guadalajara) | Electrical Validation Engineering Intern- Client IO | 4.5/5 | PDF ✅
+- [x] #055 | https://intel.wd1.myworkdayjobs.com/External/job/Mexico-Guadalajara/Electromagnetic-Modeling-Student-Worker_JR0283297 | Intel (Guadalajara) | Electromagnetic Modeling Student Worker | 3.5/5 | PDF ✅
+- [x] #062 | https://intel.wd1.myworkdayjobs.com/External/job/Mexico-Guadalajara/AI-Algorithm-Research-Intern---Neuromorphic-Computing_JR0283303 | Intel (Guadalajara) | AI Algorithm Research Intern – Neuromorphic Computing | 2.5/5 | PDF ❌
+- [x] #067 | https://mx.linkedin.com/jobs/view/trainee-estudiantes-de-ingenier%C3%ADa-en-computaci%C3%B3n-ciencias-de-la-computaci%C3%B3n-ingenier%C3%ADa-en-sistemas-computacionales-o-carreras-afines-at-pwc-m%C3%A9xico-4437420862 | PwC México | Trainee / Estudiantes de Ingeniería en Computación | 3.5/5 | PDF ✅

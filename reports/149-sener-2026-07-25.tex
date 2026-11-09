@@ -1,0 +1,100 @@
+\documentclass{resume}
+
+\begin{document}
+
+% --------- Contact Information -----------
+\introduction[
+    fullname={Christian Omar Payán Torróntegui},
+    email={omarpayant@gmail.com},
+    phone={669 100 3234},
+    linkedin={linkedin.com/in/omarpayant/},
+    github={github.com/opyntorr}
+]
+
+% --------- Summary -----------
+\summary{Robotics \& Digital Systems Engineering student focused on product design, advanced manufacturing, and robotics. Proven experience in 3D modeling, additive manufacturing, and Python simulation. Seeking to leverage analytical design to bridge creative design with technical feasibility within Railway Engineering.}
+
+% --------- Education ---------
+\begin{educationSection}{Education}
+    \educationItem[
+        university={Tecnológico de Monterrey},
+        college={Zapopan, Jalisco},
+        graduation={Expected December 2026},
+        program={B.S. Robotics and Digital Systems},
+        coursework={Python Programming, CAD Design, Advanced 3D modeling}
+    ]
+\end{educationSection}
+
+% --------- Skills -----------
+\begin{skillsSection}{Technical Skills}
+    \skillItem[
+        category={Programming \& Languages},
+        skills={Python, C++, Spanish (Native), English (B2)}
+    ] \\
+    \skillItem[
+        category={Robotics \& Simulation},
+        skills={ROS 2, Gazebo, URDF}
+    ] \\
+    \skillItem[
+        category={Design \& Electronics},
+        skills={SOLIDWORKS, Fusion 360, Eagle}
+    ] \\
+    \skillItem[
+        category={Tools \& Methodologies},
+        skills={Git, Agile, Scrum, Advanced FDM 3D Printing, Linux (Ubuntu), Docker}
+    ]
+\end{skillsSection}
+
+% --------- Experience -----------
+\begin{experienceSection}{Professional Experience}
+    \experienceItem[
+        company={Industrial Mounts \& Robotic Support Interfaces},
+        location={Zapopan, Jalisco},
+        position={Mechanical \& Product Designer},
+        duration={Feb-Jun 2026}
+    ]
+    \begin{itemize}
+        \itemsep -6pt {}
+        \item Engineered mechanical interfaces for VR controllers (Meta Quest 3), developing a 3-DOF system that reduced fabrication costs by 95\% vs commercial alternatives
+        \item Designed and prototyped a custom mini PC enclosure for robust deployment in industrial environments, utilizing 3D-printed fiberglass-reinforced PETG for its ideal thermal and mechanical properties
+    \end{itemize}
+\end{experienceSection}
+
+% --------- Projects -----------
+\begin{experienceSection}{Academic \& Technical Projects}
+    \projectItem[
+        title={Open-Source Gastrointestinal Medical Phantom},
+        duration={Ago-Dic 2025 – Feb-Jun 2026},
+        keyHighlight={Medical phantom via advanced FDM 3D printing}
+    ]
+    \begin{itemize}
+        \vspace{-0.5em}
+        \itemsep -6pt {}
+        \item Engineered phantom via advanced FDM 3D printing (TPU/PETG), reducing prototyping costs by 80\% vs commercial alternatives
+        \item Managed development using Agile methodologies to iterate rapidly on anatomical accuracy and material constraints
+    \end{itemize}
+    \projectItem[
+        title={Port Automation \& Drone Sim},
+        duration={Ago-Dic 2025},
+        keyHighlight={Developed a port simulation environment utilizing ROS 2 and Gazebo in partnership with OMRON}
+    ]
+    \begin{itemize}
+        \vspace{-0.5em}
+        \itemsep -6pt {}
+        \item Engineered URDF models and C++/Python ROS 2 nodes for kinematic control and reliable flight telemetry
+        \item Designed \& 3D-printed custom hardware: drone mirror/lens mounts, and an AMR bracket (LiDAR, ArUco, Jetson)
+    \end{itemize}
+    \projectItem[
+        title={DigiMix},
+        duration={Ago-Dic 2024},
+        keyHighlight={Designed an embedded system integrating custom hardware and digital interfaces with Intel}
+    ]
+    \begin{itemize}
+        \vspace{-0.5em}
+        \itemsep -6pt {}
+        \item Designed custom PCB and 3D-printed casing; engineered hardware using dual-core STM32 and ESP32 (WebSockets)
+        \item Applied Scrum to manage lifecycle, integrating hardware and software architectures with zero logic faults
+    \end{itemize}
+\end{experienceSection}
+
+\end{document}

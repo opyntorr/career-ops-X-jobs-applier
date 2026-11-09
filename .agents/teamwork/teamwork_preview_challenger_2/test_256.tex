@@ -1,0 +1,129 @@
+\documentclass{resume}
+
+% Redefinir summary para usar titulo en espanol
+\renewcommand{\summary}[1]{%
+    \sectionTitle{Resumen Profesional}%
+    #1
+}
+
+% Definir educationItemEs para evitar macros residuales en ingles (Graduating, Relevant coursework)
+\newkeycommand{\educationItemEs}[
+    university,
+    college,
+    program,
+    graduation,
+    grade,
+    coursework
+]{%
+    {%
+        \bf \commandkey{program}%
+    } \hfill {%
+        \commandkey{graduation}%
+    } \\
+    {%
+        \commandkey{university}%
+    } \hfill \ifcommandkey{grade}{%
+        \commandkey{grade}%
+    }{} \\
+    {%
+        \commandkey{college}%
+    } \\
+    \ifcommandkey{coursework}{%
+        Materias relevantes: \commandkey{coursework}%
+    }{}%
+}
+
+\begin{document}
+
+% --------- Informacion de Contacto -----------
+\introduction[
+    fullname={Christian Omar Payán Torróntegui},
+    email={omarpayant@gmail.com},
+    phone={+52 669 100 3234},
+    linkedin={linkedin.com/in/omarpayant/},
+    github={github.com/opyntorr}
+]
+
+% --------- Resumen Profesional -----------
+\summary{Estudiante avanzado de Ingeniería en Robótica y Sistemas Digitales radicado en Mazatlán, especializado en mantenimiento electromecánico de campo, actuadores de potencia y diagnóstico electrónico con multímetro. Experiencia práctica en soporte de terminales y hardware de laboratorio, ensamble de gabinetes industriales con protección ante vibraciones y cableado de potencia. Manejo intermedio de Microsoft Excel (acreditado con curso de 100 horas) para control riguroso de refacciones, bitácoras de servicio y auditoría de inventarios. Disponibilidad para servicio en Mazatlán y rutas del sur de Sinaloa.}
+
+% --------- Educacion ---------
+\begin{educationSection}{Educacion}
+    \educationItemEs[
+        program={Ingeniería en Robótica y Sistemas Digitales (9no Semestre)},
+        university={Tecnológico de Monterrey, Campus Guadalajara},
+        college={Zapopan, Jalisco},
+        graduation={Ago 2022 -- Dic 2026},
+        coursework={Máquinas Eléctricas, Mecatrónica, Circuitos de Potencia, Instrumentación y Control}
+    ] \vspace{0.2em}
+
+    \educationItemEs[
+        program={Curso de 100 Horas en Microsoft Office (Excel Intermedio, Word, PowerPoint)},
+        university={Bachillerato General},
+        college={Mazatlán, Sinaloa},
+        graduation={Certificado Acreditado},
+        coursework={Fórmulas, Filtros, Tablas Dinámicas, Control de Inventario de Refacciones y Liquidación}
+    ]
+\end{educationSection}
+
+% --------- Habilidades Tecnicas -----------
+\begin{skillsSection}{Habilidades Tecnicas}
+    \skillItem[
+        category={Electromecanica y Actuadores},
+        skills={Motores DC y Motorreductores, Relevadores, Mecanismos de Espiral y Arrastre, Sensores Ópticos e Inductivos, Cableado y Arneses Industriales, Ensamble Mecánico Resistente a Vibración}
+    ] \\
+    \skillItem[
+        category={Diagnostico y Medicion},
+        skills={Multímetro Digital (Voltajes AC/DC, Continuidad, Señales de Control), Fuentes de Alimentación Conmutadas, Detección de Cortocircuitos, Diagnóstico de Tarjetas Electrónicas}
+    ] \\
+    \skillItem[
+        category={Gestion Operativa y Campo},
+        skills={Microsoft Excel Intermedio (Fórmulas, Tablas, Bitácoras de Servicio), Control de Inventario de Partes, Movilidad Local y Disponibilidad de Ruta en Sinaloa}
+    ]
+\end{skillsSection}
+
+% --------- Experiencia Laboral -----------
+\begin{experienceSection}{Experiencia Laboral}
+    \experienceItem[
+        company={Tecnológico de Monterrey — Laboratorio de Manufactura Avanzada},
+        location={Zapopan, Jalisco},
+        position={Asistente de Laboratorio y Soporte de Hardware},
+        duration={Feb 2026 -- Jun 2026}
+    ]
+    \begin{itemize}
+        \vspace{-0.5em}
+        \itemsep -9pt {}
+        \item Diseñé, fabriqué y ensamblé gabinetes para mini PCs industriales resistentes a vibración continua, organizando el cableado interno para evitar falsos contactos y desgaste mecánico.
+        \item Realicé mantenimiento preventivo y correctivo a estaciones de cómputo y terminales de prueba, diagnosticando fallas eléctricas con multímetro y sustituyendo componentes.
+        \item Administré el registro de inventario de componentes electrónicos, refacciones y herramientas mediante hojas de cálculo en Excel, manteniendo auditorías con 100\% de precisión.
+    \end{itemize}
+\end{experienceSection}
+
+% --------- Proyectos Tecnicos -----------
+\begin{experienceSection}{Proyectos Tecnicos}
+    \projectItem[
+        title={Diseño y Diagnóstico de Tarjeta Electrónica DigiMix (con Intel)},
+        duration={Ago 2024 -- Dic 2024},
+        keyHighlight={Eagle PCB, Microcontroladores STM32/ESP32, Multímetro, Verificación Eléctrica}
+    ]
+    \begin{itemize}
+        \vspace{-0.5em}
+        \itemsep -9pt {}
+        \item Diseñé en Eagle PCB un circuito embebido con aislamiento de ruido eléctrico, verificando voltajes de alimentación de 3.3V y 5V y continuidad de pistas con multímetro digital.
+        \item Validé la comunicación de datos y el funcionamiento estable de sensores y actuadores bajo pruebas continuas de laboratorio, sin fallas lógicas ni sobrecalentamiento.
+    \end{itemize}
+
+    \projectItem[
+        title={Integración de Sensores y Soportes para Actuadores (Proyecto OMRON)},
+        duration={Ago 2025 -- Dic 2025},
+        keyHighlight={Sensores Ópticos, Monturas 3D Rígidas, Calibración de Actuadores, Pruebas en Movimiento}
+    ]
+    \begin{itemize}
+        \vspace{-0.5em}
+        \itemsep -9pt {}
+        \item Diseñé y manufacturé monturas rígidas de precisión para sensores ópticos y actuadores en plataformas móviles, garantizando sujeción firme ante vibraciones de desplazamiento.
+        \item Calibré señales de retroalimentación en sensores y actuadores, garantizando lecturas estables y respuesta mecánica sin holgura.
+    \end{itemize}
+\end{experienceSection}
+
+\end{document}

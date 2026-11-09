@@ -3,7 +3,7 @@
 Career-Ops Discord Command Center
 Centro de Comando multicanal para gestion autonoma de postulaciones y CVs.
 Canales dedicados:
-- #control-y-batches: Panel interactivo persistente, ejecucion de lotes y feed de exitos.
+- #control-y-batches: Panel interactivo persistente con selector de plataformas, filtro local de Computrabajo, postulación a N vacantes y feed de éxitos.
 - #finalizacion-manual: Vacantes con CAPTCHA o portales corporativos complejos con boton de confirmacion.
 - #chat-antigravity: Chat directo con Antigravity CLI con controles de modelo, nivel de esfuerzo y comando /plan.
 - #generador-cvs: Generador on-demand de CVs personalizados a 1 pagina por enlace o descripcion.
@@ -32,6 +32,7 @@ PROOFS_DIR = OUTPUT_DIR / "proofs"
 REPORTS_DIR = CAREER_OPS_DIR / "reports"
 PENDING_DRAFTS_FILE = CAREER_OPS_DIR / "data" / "pending-drafts.md"
 AGY_SETTINGS_FILE = CAREER_OPS_DIR / "data" / "antigravity-settings.json"
+BATCH_SETTINGS_FILE = CAREER_OPS_DIR / "data" / "batch-settings.json"
 
 sys.path.insert(0, str(CAREER_OPS_DIR))
 
@@ -56,6 +57,12 @@ DEFAULT_AGY_SETTINGS = {
     "model": "gemini-3.8-flash",
     "effort": "high",
     "mode": "auto"
+}
+
+DEFAULT_BATCH_SETTINGS = {
+    "platform": "all",
+    "computrabajo_scope": "local",
+    "limit": 5
 }
 
 VALID_MODELS = [
@@ -105,6 +112,30 @@ def save_antigravity_settings(settings: dict):
         json.dump(settings, f, indent=2)
 
 
+def load_batch_settings() -> dict:
+    """Carga las preferencias activas de lotes (plataformas, filtro local de Computrabajo)."""
+    if not BATCH_SETTINGS_FILE.exists():
+        save_batch_settings(DEFAULT_BATCH_SETTINGS)
+        return dict(DEFAULT_BATCH_SETTINGS)
+    try:
+        with open(BATCH_SETTINGS_FILE, "r", encoding="utf-8") as f:
+            data = json.load(f)
+            for k, v in DEFAULT_BATCH_SETTINGS.items():
+                if k not in data:
+                    data[k] = v
+            return data
+    except Exception as e:
+        logger.warning(f"Error al leer batch-settings.json: {e}")
+        return dict(DEFAULT_BATCH_SETTINGS)
+
+
+def save_batch_settings(settings: dict):
+    """Guarda las preferencias activas de lotes en disco."""
+    BATCH_SETTINGS_FILE.parent.mkdir(parents=True, exist_ok=True)
+    with open(BATCH_SETTINGS_FILE, "w", encoding="utf-8") as f:
+        json.dump(settings, f, indent=2)
+
+
 def build_agy_args(prompt: str, is_plan: bool = False, settings: dict = None) -> list[str]:
     """Construye los argumentos seguros de la CLI de Antigravity respetando compatibilidad de flags."""
     if settings is None:
@@ -112,19 +143,15 @@ def build_agy_args(prompt: str, is_plan: bool = False, settings: dict = None) ->
 
     cmd = ["agy"]
 
-    # Modo de ejecucion (auto o plan)
     if is_plan or settings.get("mode") == "plan":
         cmd.extend(["--mode", "plan"])
     else:
         cmd.extend(["--mode", "auto"])
 
-    # Seleccion de modelo
     model = settings.get("model", "gemini-3.8-flash")
     if model:
         cmd.extend(["--model", model])
 
-    # Nivel de esfuerzo (Thinking budget / razonamiento)
-    # Solo modelos que no fijan su presupuesto internamente
     effort = settings.get("effort", "high")
     if effort and model not in ["claude-sonnet-4-6", "claude-opus-4-6-thinking"]:
         cmd.extend(["--effort", effort])
@@ -157,6 +184,40 @@ def split_message_chunks(text: str, max_len: int = 1900) -> list[str]:
     if current:
         chunks.append(current)
     return chunks
+
+
+def render_control_panel_embed(settings: dict, stats: dict, pending_count: int) -> discord.Embed:
+    """Genera el Embed informativo con el estado activo de batches y plataformas."""
+    platform = settings.get("platform", "all")
+    scope = settings.get("computrabajo_scope", "local")
+
+    plat_names = {
+        "all": "Todas (LinkedIn + Indeed + Computrabajo)",
+        "linkedin": "Solo LinkedIn (Easy Apply)",
+        "indeed": "Solo Indeed (SmartApply)",
+        "computrabajo": "Solo Computrabajo"
+    }
+    scope_names = {
+        "local": "Solo Local (Mazatlan / Sinaloa)",
+        "nacional": "Nacional (Mexico completo)"
+    }
+
+    embed = discord.Embed(
+        title="[CAREER-OPS COMMAND CENTER] Panel de Control Autonomo",
+        description=(
+            "Bienvenido al Centro de Comando de Postulaciones Autonomas.\n\n"
+            f"**Plataforma de Busqueda Activa:** `{plat_names.get(platform, platform)}`\n"
+            f"**Filtro Geografico Computrabajo:** `{scope_names.get(scope, scope)}`\n\n"
+            f"**Total Postulaciones Procesadas:** {stats['total']}\n"
+            f"**Borradores Pendientes de Accion Manual:** {pending_count}\n"
+            f"**Ultimo Registro:** #{stats['last_id']} ({stats['last_comp']} - {stats['last_role']})\n\n"
+            "Usa los selectores para elegir plataformas o presiona un boton para postular:"
+        ),
+        color=discord.Color.dark_teal(),
+        timestamp=datetime.now()
+    )
+    embed.set_footer(text="Fuentes activas: LinkedIn + Indeed + Computrabajo | Motor: Playwright + JobSpy + agy")
+    return embed
 
 
 def render_antigravity_panel_embed(settings: dict) -> discord.Embed:
@@ -200,6 +261,135 @@ def render_antigravity_panel_embed(settings: dict) -> discord.Embed:
     )
     embed.set_footer(text="Antigravity CLI v2.0 | Control Remoto Career-Ops")
     return embed
+
+
+class CustomBatchModal(discord.ui.Modal, title="Postulacion de Lote Personalizado"):
+    """Ventana modal interactiva para ingresar cantidad de vacantes N y termino opcional."""
+    qty_input = discord.ui.TextInput(
+        label="Cantidad de Vacantes a Postular (N)",
+        placeholder="Ej: 3, 7, 12, 25...",
+        default="5",
+        required=True,
+        max_length=4
+    )
+    query_input = discord.ui.TextInput(
+        label="Termino o Especialidad Tecnica (Opcional)",
+        placeholder="Ej: automatizacion, robotica, mecatronica, plc (o vacio)...",
+        required=False,
+        max_length=60
+    )
+
+    def __init__(self, bot_instance, channel):
+        super().__init__()
+        self.bot_instance = bot_instance
+        self.channel = channel
+
+    async def on_submit(self, interaction: discord.Interaction):
+        try:
+            qty = int(self.qty_input.value.strip())
+            if qty <= 0:
+                raise ValueError()
+        except ValueError:
+            await interaction.response.send_message("[Error] La cantidad N debe ser un numero entero mayor a 0.", ephemeral=True)
+            return
+
+        query_term = self.query_input.value.strip() or None
+        await interaction.response.defer()
+        asyncio.create_task(self.bot_instance.run_batch_task(self.channel, limit=qty, query_term=query_term))
+
+
+class PlatformSelect(discord.ui.Select):
+    """Selector desplegable para elegir entre todas o plataformas especificas."""
+
+    def __init__(self, current_platform: str):
+        options = [
+            discord.SelectOption(
+                label="Todas las Plataformas",
+                value="all",
+                description="LinkedIn + Indeed + Computrabajo simultaneamente",
+                default=(current_platform == "all")
+            ),
+            discord.SelectOption(
+                label="Solo LinkedIn",
+                value="linkedin",
+                description="Filtrar y postular exclusivamente en LinkedIn Easy Apply",
+                default=(current_platform == "linkedin")
+            ),
+            discord.SelectOption(
+                label="Solo Indeed",
+                value="indeed",
+                description="Filtrar y postular exclusivamente en Indeed SmartApply",
+                default=(current_platform == "indeed")
+            ),
+            discord.SelectOption(
+                label="Solo Computrabajo",
+                value="computrabajo",
+                description="Filtrar y postular exclusivamente en Computrabajo",
+                default=(current_platform == "computrabajo")
+            ),
+        ]
+        super().__init__(
+            placeholder="Seleccionar Plataforma de Postulacion...",
+            min_values=1,
+            max_values=1,
+            options=options,
+            custom_id="select_batch_platform",
+            row=0
+        )
+
+    async def callback(self, interaction: discord.Interaction):
+        selected = self.values[0]
+        settings = load_batch_settings()
+        settings["platform"] = selected
+        save_batch_settings(settings)
+
+        stats = get_stats()
+        pending = get_pending_drafts()
+        embed = render_control_panel_embed(settings, stats, len(pending))
+        new_view = ControlPanelView(self.view.bot)
+        await interaction.response.edit_message(embed=embed, view=new_view)
+        await interaction.followup.send(f"[OK] Plataforma activa configurada a: '{selected}'.", ephemeral=True)
+
+
+class ComputrabajoScopeSelect(discord.ui.Select):
+    """Selector desplegable para el alcance de Computrabajo (local Mazatlan o nacional)."""
+
+    def __init__(self, current_scope: str):
+        options = [
+            discord.SelectOption(
+                label="Computrabajo: Solo Local (Mazatlan / Sinaloa)",
+                value="local",
+                description="Centrado exclusivamente en oportunidades locales",
+                default=(current_scope == "local")
+            ),
+            discord.SelectOption(
+                label="Computrabajo: Nacional (Mexico completo)",
+                value="nacional",
+                description="Todo Mexico aplicando regla salarial >= $18,000",
+                default=(current_scope == "nacional")
+            ),
+        ]
+        super().__init__(
+            placeholder="Seleccionar Alcance para Computrabajo...",
+            min_values=1,
+            max_values=1,
+            options=options,
+            custom_id="select_ct_scope",
+            row=1
+        )
+
+    async def callback(self, interaction: discord.Interaction):
+        selected = self.values[0]
+        settings = load_batch_settings()
+        settings["computrabajo_scope"] = selected
+        save_batch_settings(settings)
+
+        stats = get_stats()
+        pending = get_pending_drafts()
+        embed = render_control_panel_embed(settings, stats, len(pending))
+        new_view = ControlPanelView(self.view.bot)
+        await interaction.response.edit_message(embed=embed, view=new_view)
+        await interaction.followup.send(f"[OK] Alcance de Computrabajo configurado a: '{selected}'.", ephemeral=True)
 
 
 class PlanModal(discord.ui.Modal, title="Planificar Tarea con Antigravity"):
@@ -417,33 +607,40 @@ class ManualDraftView(discord.ui.View):
 
 
 class ControlPanelView(discord.ui.View):
-    """Panel de control persistente en #control-y-batches."""
+    """Panel de control persistente en #control-y-batches con selectores de plataforma y alcance."""
 
     def __init__(self, bot_instance):
         super().__init__(timeout=None)
         self.bot = bot_instance
+        settings = load_batch_settings()
+        self.add_item(PlatformSelect(settings.get("platform", "all")))
+        self.add_item(ComputrabajoScopeSelect(settings.get("computrabajo_scope", "local")))
 
-    @discord.ui.button(label="Postular 3", style=discord.ButtonStyle.primary, custom_id="panel_run_3", row=0)
+    @discord.ui.button(label="Postular 3", style=discord.ButtonStyle.primary, custom_id="panel_run_3", row=2)
     async def run_3_callback(self, interaction: discord.Interaction, button: discord.ui.Button):
         await interaction.response.defer()
         asyncio.create_task(self.bot.run_batch_task(interaction.channel, limit=3))
 
-    @discord.ui.button(label="Postular 5", style=discord.ButtonStyle.primary, custom_id="panel_run_5", row=0)
+    @discord.ui.button(label="Postular 5", style=discord.ButtonStyle.primary, custom_id="panel_run_5", row=2)
     async def run_5_callback(self, interaction: discord.Interaction, button: discord.ui.Button):
         await interaction.response.defer()
         asyncio.create_task(self.bot.run_batch_task(interaction.channel, limit=5))
 
-    @discord.ui.button(label="Postular 10", style=discord.ButtonStyle.primary, custom_id="panel_run_10", row=0)
+    @discord.ui.button(label="Postular 10", style=discord.ButtonStyle.primary, custom_id="panel_run_10", row=2)
     async def run_10_callback(self, interaction: discord.Interaction, button: discord.ui.Button):
         await interaction.response.defer()
         asyncio.create_task(self.bot.run_batch_task(interaction.channel, limit=10))
 
-    @discord.ui.button(label="Escanear 10", style=discord.ButtonStyle.secondary, custom_id="panel_scan_10", row=1)
+    @discord.ui.button(label="Postular N Vacantes", style=discord.ButtonStyle.success, custom_id="panel_run_n", row=2)
+    async def run_n_callback(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await interaction.response.send_modal(CustomBatchModal(self.bot, interaction.channel))
+
+    @discord.ui.button(label="Escanear 10", style=discord.ButtonStyle.secondary, custom_id="panel_scan_10", row=3)
     async def scan_callback(self, interaction: discord.Interaction, button: discord.ui.Button):
         await interaction.response.defer()
         asyncio.create_task(self.bot.run_scan_task(interaction.channel, limit=10))
 
-    @discord.ui.button(label="Sincronizar Cookies", style=discord.ButtonStyle.secondary, custom_id="panel_cookies", row=1)
+    @discord.ui.button(label="Sincronizar Cookies", style=discord.ButtonStyle.secondary, custom_id="panel_cookies", row=3)
     async def cookies_callback(self, interaction: discord.Interaction, button: discord.ui.Button):
         await interaction.response.defer(ephemeral=True)
         ok = await asyncio.to_thread(sync_firefox_cookies)
@@ -452,7 +649,7 @@ class ControlPanelView(discord.ui.View):
         else:
             await interaction.followup.send("[Error] No se pudo sincronizar el archivo de cookies de Firefox.", ephemeral=True)
 
-    @discord.ui.button(label="Estado del Pipeline", style=discord.ButtonStyle.secondary, custom_id="panel_status", row=1)
+    @discord.ui.button(label="Estado del Pipeline", style=discord.ButtonStyle.secondary, custom_id="panel_status", row=3)
     async def status_callback(self, interaction: discord.Interaction, button: discord.ui.Button):
         await interaction.response.defer(ephemeral=True)
         stats = get_stats()
@@ -470,32 +667,7 @@ class ControlPanelView(discord.ui.View):
         embed.add_field(name="Desglose por Estado", value=breakdown if breakdown else "Sin datos", inline=False)
         await interaction.followup.send(embed=embed, ephemeral=True)
 
-    @discord.ui.button(label="Ver Ultimo CV", style=discord.ButtonStyle.secondary, custom_id="panel_last_cv", row=2)
-    async def last_cv_callback(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await interaction.response.defer(ephemeral=True)
-        stats = get_stats()
-        last_id = stats["last_id"]
-        if last_id == 0:
-            await interaction.followup.send("[Info] No hay postulaciones registradas en applications.md.", ephemeral=True)
-            return
-
-        pdfs = list(OUTPUT_DIR.glob(f"*{last_id}*.pdf"))
-        proofs = list(PROOFS_DIR.glob(f"*{last_id}*.png"))
-
-        embed = discord.Embed(
-            title=f"[Ultima Postulacion #{last_id}]",
-            description=f"Empresa: {stats['last_comp']}\nPuesto: {stats['last_role']}",
-            color=discord.Color.purple()
-        )
-        files = []
-        if pdfs and pdfs[0].exists():
-            files.append(discord.File(str(pdfs[0]), filename=pdfs[0].name))
-        if proofs and proofs[0].exists():
-            files.append(discord.File(str(proofs[0]), filename=proofs[0].name))
-
-        await interaction.followup.send(embed=embed, files=files, ephemeral=True)
-
-    @discord.ui.button(label="Refrescar Panel", style=discord.ButtonStyle.secondary, custom_id="panel_refresh", row=2)
+    @discord.ui.button(label="Refrescar Panel", style=discord.ButtonStyle.secondary, custom_id="panel_refresh", row=3)
     async def refresh_callback(self, interaction: discord.Interaction, button: discord.ui.Button):
         await interaction.response.defer()
         await self.bot.post_control_panel(interaction.channel)
@@ -556,13 +728,20 @@ class CareerOpsDiscordBot(commands.Bot):
         self.antigravity_channel = created_channels["antigravity"]
         self.cv_generator_channel = created_channels["cv_generator"]
 
-        # Publicar panel de control en #control-y-batches si no existe
-        has_control_panel = False
-        async for m in self.control_channel.history(limit=10):
+        # Actualizar o publicar panel de control en #control-y-batches
+        control_panel_msg = None
+        async for m in self.control_channel.history(limit=15):
             if m.author.id == self.user.id and m.embeds and "[CAREER-OPS COMMAND CENTER]" in (m.embeds[0].title or ""):
-                has_control_panel = True
-                break
-        if not has_control_panel:
+                # Si tiene menos componentes de los esperados (los 2 selects + botones = 4 rows), limpiamos el viejo
+                if len(m.components) < 4:
+                    try:
+                        await m.delete()
+                    except Exception:
+                        pass
+                else:
+                    control_panel_msg = m
+                    break
+        if not control_panel_msg:
             await self.post_control_panel(self.control_channel)
 
         # Publicar panel de configuracion en #chat-antigravity si no existe
@@ -578,21 +757,8 @@ class CareerOpsDiscordBot(commands.Bot):
         """Publica el mensaje de panel de control interactivo en #control-y-batches."""
         stats = get_stats()
         pending = get_pending_drafts()
-
-        embed = discord.Embed(
-            title="[CAREER-OPS COMMAND CENTER] Panel de Control Autonomo",
-            description=(
-                "Bienvenido al Centro de Comando de Postulaciones Autonomas.\n\n"
-                f"**Total Postulaciones Procesadas:** {stats['total']}\n"
-                f"**Borradores Pendientes de Accion Manual:** {len(pending)}\n"
-                f"**Ultimo Registro:** #{stats['last_id']} ({stats['last_comp']} - {stats['last_role']})\n\n"
-                "Selecciona una accion para ejecutar lotes de postulacion, escanear o sincronizar credenciales:"
-            ),
-            color=discord.Color.dark_teal(),
-            timestamp=datetime.now()
-        )
-        embed.set_footer(text="Fuentes activas: LinkedIn + Indeed + Computrabajo | Motor: Playwright + JobSpy + agy")
-
+        settings = load_batch_settings()
+        embed = render_control_panel_embed(settings, stats, len(pending))
         view = ControlPanelView(self)
         await channel.send(embed=embed, view=view)
 
@@ -603,18 +769,31 @@ class CareerOpsDiscordBot(commands.Bot):
         view = AntigravityControlView(self)
         await channel.send(embed=embed, view=view)
 
-    async def run_scan_task(self, channel: discord.TextChannel, limit: int = 10):
-        """Escanea vacantes y muestra el resultado en #control-y-batches."""
-        await channel.send(f"[Info] Escaneando oportunidades en LinkedIn, Indeed y Computrabajo (Meta: {limit})...")
-        found_jobs = await asyncio.to_thread(collect_multi_platform_jobs, limit)
+    async def run_scan_task(self, channel: discord.TextChannel, limit: int = 10, query_term: str = None):
+        """Escanea vacantes y muestra el resultado en #control-y-batches respetando filtros activos."""
+        settings = load_batch_settings()
+        plat = settings.get("platform", "all")
+        scope = settings.get("computrabajo_scope", "local")
+
+        plat_txt = {"all": "Todas", "linkedin": "Solo LinkedIn", "indeed": "Solo Indeed", "computrabajo": "Solo Computrabajo"}.get(plat, plat)
+        scope_txt = "Local Mazatlan" if scope == "local" else "Nacional"
+
+        await channel.send(f"[Info] Escaneando vacantes (Meta: {limit} | Plataforma: {plat_txt} | Computrabajo: {scope_txt})...")
+        found_jobs = await asyncio.to_thread(
+            collect_multi_platform_jobs,
+            limit=limit,
+            query_term=query_term,
+            platform=plat,
+            computrabajo_scope=scope
+        )
 
         if not found_jobs:
-            await channel.send("[Info] Escaneo completado. No se detectaron vacantes nuevas sin postular.")
+            await channel.send("[Info] Escaneo completado. No se detectaron vacantes nuevas sin postular con los filtros seleccionados.")
             return
 
         embed = discord.Embed(
             title=f"[Escaneo Completado] {len(found_jobs)} Vacantes Cualificadas",
-            description=f"Mostrando hasta {min(len(found_jobs), limit)} mejores coincidencias:",
+            description=f"Filtro: `{plat_txt}` | Alcance Computrabajo: `{scope_txt}`\nMostrando hasta {min(len(found_jobs), limit)} mejores coincidencias:",
             color=discord.Color.gold(),
             timestamp=datetime.now()
         )
@@ -638,17 +817,32 @@ class CareerOpsDiscordBot(commands.Bot):
 
         await channel.send(embed=embed, view=QuickApplyView(self, min(len(found_jobs), limit)))
 
-    async def run_batch_task(self, channel: discord.TextChannel, limit: int = 5, query_term: str = None):
-        """Ejecuta un lote completo de postulacion autonoma distribuyendo resultados segun su estado."""
+    async def run_batch_task(self, channel: discord.TextChannel, limit: int = 5, query_term: str = None, platform: str = None, computrabajo_scope: str = None):
+        """Ejecuta un lote completo de postulacion autonoma distribuyendo resultados segun su estado y filtros activos."""
+        settings = load_batch_settings()
+        plat = platform or settings.get("platform", "all")
+        scope = computrabajo_scope or settings.get("computrabajo_scope", "local")
+
         q_str = f" para '{query_term}'" if query_term else ""
-        await channel.send(f"[Inicio de Lote] Ejecutando pipeline autonomo{q_str} (Meta solicitada: {limit} vacantes)...")
+        plat_txt = {"all": "Todas (LinkedIn + Indeed + Computrabajo)", "linkedin": "Solo LinkedIn", "indeed": "Solo Indeed", "computrabajo": "Solo Computrabajo"}.get(plat, plat)
+        scope_txt = "Local (Mazatlan / Sinaloa)" if scope == "local" else "Nacional (Mexico)"
+
+        await channel.send(
+            f"[Inicio de Lote] Ejecutando pipeline{q_str} (Meta solicitada: {limit} vacantes | Plataforma: {plat_txt} | Computrabajo: {scope_txt})..."
+        )
 
         await asyncio.to_thread(sync_firefox_cookies)
         current_id = get_next_id()
 
-        unique_jobs = await asyncio.to_thread(collect_multi_platform_jobs, limit, query_term)
+        unique_jobs = await asyncio.to_thread(
+            collect_multi_platform_jobs,
+            limit=limit,
+            query_term=query_term,
+            platform=plat,
+            computrabajo_scope=scope
+        )
         if not unique_jobs:
-            await channel.send("[Info] No se detectaron vacantes nuevas que cumplan los requisitos en este ciclo.")
+            await channel.send(f"[Info] No se detectaron vacantes nuevas que cumplan los requisitos con filtro `{plat_txt}` ({scope_txt}).")
             return
 
         await channel.send(f"[Info] Se detectaron {len(unique_jobs)} oportunidades cualificadas. Procesando hasta {limit}...")
@@ -683,6 +877,9 @@ class CareerOpsDiscordBot(commands.Bot):
                 app_status = apply_res.get("status", "Evaluated")
                 proof_path = apply_res.get("proof", "")
                 portal_type = apply_res.get("portal_type", "Corporativo")
+                final_portal_url = apply_res.get("external_url") or job.get("url", "")
+            else:
+                final_portal_url = ""
 
             report_file = REPORTS_DIR / f"{app_id}-{slug}-{today_str}.md"
             report_content = f"""# Evaluation Report: #{app_id} - {job['company']} - {job['title']}
@@ -703,6 +900,7 @@ class CareerOpsDiscordBot(commands.Bot):
 - **Role:** {job['title']}
 - **Location:** {job['location']}
 - **Posting URL:** {job['url']}
+- **Destination URL:** {final_portal_url}
 - **Auto-Apply Status:** {app_status}
 
 ## Block B: Match Analysis
@@ -758,8 +956,7 @@ class CareerOpsDiscordBot(commands.Bot):
                     motivo = "Formulario con preguntas personalizadas pendientes de validacion manual."
                     action_txt = "Revisar preguntas y enviar"
 
-                final_portal_url = apply_res.get("external_url") or job.get("url", "")
-                add_pending_draft(app_id, today_str, portal_name, job["company"], job["title"], motivo, final_portal_url, action_txt)
+                add_pending_draft(app_id, today_str, f"{portal_name} ({portal_type})", job["company"], job["title"], motivo, final_portal_url, action_txt)
 
                 embed = discord.Embed(
                     title=f"[Accion Requerida #{app_id}] {job['company']} - {job['title']}",
@@ -864,6 +1061,66 @@ class CareerOpsDiscordBot(commands.Bot):
             asyncio.create_task(self.process_single_apply(message.channel, target_url))
             return
 
+        # Comando /batch o /run para postular a N vacantes
+        if content.startswith(("/batch", "!batch", "/run", "!run")):
+            parts = content.split()
+            qty = 5
+            term = None
+            if len(parts) > 1:
+                try:
+                    qty = int(parts[1])
+                except ValueError:
+                    term = parts[1]
+            if len(parts) > 2 and not term:
+                term = parts[2]
+            asyncio.create_task(self.run_batch_task(message.channel, limit=qty, query_term=term))
+            return
+
+        # Comando /plataforma
+        if content.startswith(("/plataforma", "!plataforma")):
+            parts = content.split(maxsplit=1)
+            valid_p = ["all", "linkedin", "indeed", "computrabajo"]
+            if len(parts) < 2:
+                await message.reply(f"Uso: `/plataforma <all|linkedin|indeed|computrabajo>`\nOpciones: {', '.join(valid_p)}")
+                return
+            val = parts[1].strip().lower()
+            if val not in valid_p:
+                await message.reply(f"[Error] Plataforma no valida. Opciones: {', '.join(valid_p)}")
+                return
+            settings = load_batch_settings()
+            settings["platform"] = val
+            save_batch_settings(settings)
+            await message.reply(f"[OK] Plataforma activa configurada a `{val}`.")
+            return
+
+        # Comando /computrabajo
+        if content.startswith(("/computrabajo", "!computrabajo")):
+            parts = content.split(maxsplit=1)
+            valid_s = ["local", "nacional"]
+            if len(parts) < 2:
+                await message.reply("Uso: `/computrabajo <local|nacional>`")
+                return
+            val = parts[1].strip().lower()
+            if val not in valid_s:
+                await message.reply("[Error] Opciones validas: `local` (Mazatlan/Sinaloa) o `nacional`")
+                return
+            settings = load_batch_settings()
+            settings["computrabajo_scope"] = val
+            save_batch_settings(settings)
+            await message.reply(f"[OK] Alcance de Computrabajo configurado a `{val}`.")
+            return
+
+        # Comando /panel o !panel
+        if content in ("/panel", "!panel", "/control", "!control"):
+            if self.control_channel and message.channel.id == self.control_channel.id:
+                await self.post_control_panel(message.channel)
+                return
+            if self.antigravity_channel and message.channel.id == self.antigravity_channel.id:
+                await self.post_antigravity_panel(message.channel)
+                return
+            await self.post_control_panel(message.channel)
+            return
+
         # 1. Canal #chat-antigravity
         if self.antigravity_channel and message.channel.id == self.antigravity_channel.id:
             await self.handle_antigravity_chat(message)
@@ -924,7 +1181,6 @@ class CareerOpsDiscordBot(commands.Bot):
             "reason": reason
         }
 
-        # Generar CV adaptado a 1 pagina
         tex_code, slug, _ = generate_tailored_cv(job, app_id)
         cand_slug = re.sub(r'[^a-zA-Z0-9]', '', PROFILE.get("full_name", "Candidate"))
         tex_file = OUTPUT_DIR / f"CV-{cand_slug}-{slug}.tex"
@@ -932,14 +1188,12 @@ class CareerOpsDiscordBot(commands.Bot):
         tex_file.write_text(tex_code, encoding="utf-8")
         await asyncio.to_thread(compile_pdf, tex_file, OUTPUT_DIR)
 
-        # Ejecutar navegacion Playwright
         apply_res = await asyncio.to_thread(run_auto_apply_sync, job_url, pdf_file, app_id, True)
         app_status = apply_res.get("status", "Evaluated")
         proof_path = apply_res.get("proof", "")
         portal_type = apply_res.get("portal_type", "Corporativo")
         final_portal_url = apply_res.get("external_url") or job_url
 
-        # Guardar reporte
         report_file = REPORTS_DIR / f"{app_id}-{slug}-{today_str}.md"
         report_content = f"""# Evaluation Report: #{app_id} - {company} - {title}
 
@@ -966,7 +1220,6 @@ class CareerOpsDiscordBot(commands.Bot):
 """
         report_file.write_text(report_content, encoding="utf-8")
 
-        # applications.md
         new_row = f"| {app_id} | {today_str} | {company} | {title} | {score}/5 | {app_status} | Yes | [{app_id}](../reports/{app_id}-{slug}-{today_str}.md) | Discord External Apply ({portal_type}) |\n"
         with open(APPS_FILE, "a", encoding="utf-8") as f:
             f.write(new_row)
@@ -1022,7 +1275,6 @@ class CareerOpsDiscordBot(commands.Bot):
         if not content:
             return
 
-        # Comando /plan o !plan
         if content.startswith(("/plan", "!plan")):
             parts = content.split(maxsplit=1)
             if len(parts) < 2:
@@ -1037,7 +1289,6 @@ class CareerOpsDiscordBot(commands.Bot):
             await self.execute_antigravity_query(message.channel, plan_prompt, is_plan=True, user=message.author)
             return
 
-        # Comando /modelo o /model
         if content.startswith(("/modelo", "!modelo", "/model", "!model")):
             parts = content.split(maxsplit=1)
             if len(parts) < 2:
@@ -1054,7 +1305,6 @@ class CareerOpsDiscordBot(commands.Bot):
             await message.reply(f"[OK] Modelo cambiado exitosamente a `{new_model}`.")
             return
 
-        # Comando /esfuerzo o /effort
         if content.startswith(("/esfuerzo", "!esfuerzo", "/effort", "!effort")):
             parts = content.split(maxsplit=1)
             if len(parts) < 2:
@@ -1070,12 +1320,10 @@ class CareerOpsDiscordBot(commands.Bot):
             await message.reply(f"[OK] Nivel de esfuerzo cambiado exitosamente a `{new_effort}`.")
             return
 
-        # Comando /panel o /ajustes o /config
         if content in ("/panel", "!panel", "/ajustes", "!ajustes", "/config", "!config"):
             await self.post_antigravity_panel(message.channel)
             return
 
-        # Consulta conversacional regular
         await self.execute_antigravity_query(message.channel, content, is_plan=False, user=message.author)
 
     async def handle_cv_generation(self, message: discord.Message):

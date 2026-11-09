@@ -1,0 +1,59 @@
+/* Career-Ops Autofill Styles */
+
+#career-ops-floating-btn {
+  position: fixed !important;
+  bottom: 24px !important;
+  right: 24px !important;
+  z-index: 2147483647 !important;
+  background: #1e3a8a !important;
+  color: #ffffff !important;
+  border: 1px solid #3b82f6 !important;
+  padding: 10px 18px !important;
+  border-radius: 9999px !important;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif !important;
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25) !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease-in-out !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  user-select: none !important;
+}
+
+#career-ops-floating-btn:hover {
+  background: #1d4ed8 !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 6px 20px rgba(37, 99, 235, 0.4) !important;
+}
+
+#career-ops-floating-btn:active {
+  transform: translateY(0) !important;
+}
+
+#career-ops-toast {
+  position: fixed !important;
+  bottom: 80px !important;
+  right: 24px !important;
+  z-index: 2147483647 !important;
+  background: #064e3b !important;
+  color: #ecfdf5 !important;
+  border: 1px solid #059669 !important;
+  padding: 12px 20px !important;
+  border-radius: 8px !important;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif !important;
+  font-size: 14px !important;
+  font-weight: 500 !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3) !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out !important;
+  transform: translateY(10px) !important;
+}
+
+#career-ops-toast.career-ops-toast-show {
+  opacity: 1 !important;
+  pointer-events: auto !important;
+  transform: translateY(0) !important;
+}
