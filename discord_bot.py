@@ -944,11 +944,14 @@ class CareerOpsDiscordBot(commands.Bot):
 
                 await channel.send(embed=embed, files=files)
 
-            elif app_status in ["CaptchaBlocked", "ExternalATS", "ExternalPending", "FormInProgress"]:
+            elif app_status in ["CaptchaBlocked", "ExternalATS", "ExternalPending", "FormInProgress", "EmailVerificationPending"]:
                 manual_count += 1
                 if app_status == "CaptchaBlocked":
                     motivo = "Google reCAPTCHA / Cloudflare detectado. Tus respuestas y CV ya estan precargados; solo requiere resolver el reto en 1 clic y enviar."
                     action_txt = "Resolver reCAPTCHA en 1 clic y enviar"
+                elif app_status == "EmailVerificationPending":
+                    motivo = f"Workday ha creado exitosamente tu cuenta ({PROFILE.get('email', 'omarpayant@gmail.com')}) y enviado un correo de confirmación. Abre el enlace en tu correo para activar la cuenta y completar la postulación."
+                    action_txt = "Verificar correo y continuar"
                 elif app_status in ["ExternalATS", "ExternalPending"]:
                     motivo = f"Portal corporativo externo ({portal_type}). Se ha generado tu CV personalizado en PDF adjunto. Completa la postulacion en 1 minuto con el archivo adjunto."
                     action_txt = f"Completar en portal {portal_type} con CV generado"
@@ -1244,7 +1247,12 @@ class CareerOpsDiscordBot(commands.Bot):
                 files.append(discord.File(str(proof_obj), filename=proof_obj.name))
             await channel.send(embed=embed, files=files)
         else:
-            motivo = f"Portal corporativo ({portal_type}) detectado. Requiere confirmacion o credenciales."
+            if app_status == "EmailVerificationPending":
+                motivo = f"Workday ha creado tu cuenta ({PROFILE.get('email', 'omarpayant@gmail.com')}) y enviado un correo de confirmación. Revisa tu bandeja de entrada o spam para activarla."
+            elif app_status == "CaptchaBlocked":
+                motivo = "Google reCAPTCHA / Cloudflare detectado. Datos y CV precargados; listo para resolver reto y enviar."
+            else:
+                motivo = f"Portal corporativo ({portal_type}) detectado. Requiere confirmacion o credenciales."
             add_pending_draft(app_id, today_str, f"{portal_name} ({portal_type})", company, title, motivo, final_portal_url, f"Completar en portal {portal_type}")
             embed = discord.Embed(
                 title=f"[Accion Requerida #{app_id}] {company} - {title}",
