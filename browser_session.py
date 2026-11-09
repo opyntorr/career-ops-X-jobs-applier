@@ -341,11 +341,32 @@ async def sync_computrabajo_tailored_cv(page, pdf_path):
         print(f"  [Computrabajo FIFO] Aviso en sincronización: {e}")
         return False
 
+async def click_external_apply_button(page, btn):
+    """Hace clic en un boton de solicitud externa manejando tanto popups como navegacion en la misma ventana."""
+    target_page = page
+    try:
+        async with page.context.expect_page(timeout=8000) as new_page_info:
+            await btn.click()
+        target_page = await new_page_info.value
+        await target_page.wait_for_load_state("domcontentloaded", timeout=15000)
+        await target_page.wait_for_timeout(3000)
+        print(f"  [ATS Externo] Pestana emergente detectada y cargada: {target_page.url[:75]}...")
+    except Exception:
+        # Si no abrio pestana emergente, esperar navegacion en la misma pagina
+        try:
+            await page.wait_for_load_state("domcontentloaded", timeout=6000)
+        except Exception:
+            pass
+        await page.wait_for_timeout(3000)
+        target_page = page
+    return target_page
+
 async def handle_external_ats(page, dest_url, pdf_path, app_id, auto_submit, proof_path, result):
     """Gestiona la postulación en portales corporativos externos (Nivel 1 automático o Nivel 2/3 asistido)."""
     curr_url = page.url.lower()
     print(f"  [ATS Externo] Analizando portal de destino: {curr_url[:80]}...")
     await page.wait_for_timeout(2500)
+    result["external_url"] = page.url
 
     # 1. Comprobar reto de seguridad
     challenge = await detect_security_challenge(page)
@@ -369,10 +390,12 @@ async def handle_external_ats(page, dest_url, pdf_path, app_id, auto_submit, pro
         ats_type = "Workday"
     elif "taleo.net" in curr_url:
         ats_type = "Taleo"
-    elif "successfactors" in curr_url:
+    elif "successfactors" in curr_url or "jobs2web" in curr_url or "bombardier" in curr_url:
         ats_type = "SuccessFactors"
     elif "smartrecruiters" in curr_url:
         ats_type = "SmartRecruiters"
+    elif "icims" in curr_url:
+        ats_type = "iCIMS"
 
     print(f"  [ATS Externo] Tipo de ATS detectado: {ats_type}")
     result["portal_type"] = ats_type
@@ -665,17 +688,16 @@ async def apply_to_job(job_url, pdf_path, job_id, auto_submit=True):
                                 result["message"] = "Formulario abierto en LinkedIn; requiere atención en preguntas personalizadas."
                     else:
                         print("  [Navegador] Enlace de solicitud externa detectado en LinkedIn. Intentando procesar ATS...")
-                        await handle_external_ats(page, page.url, pdf_path, job_id, auto_submit, proof_path, result)
+                        target_page = await click_external_apply_button(page, easy_apply_btn)
+                        await handle_external_ats(target_page, target_page.url, pdf_path, job_id, auto_submit, proof_path, result)
                 else:
                     print("  [Navegador] Botón de solicitud externa detectado en LinkedIn...")
-                    ext_btn = page.locator("button:has-text('Solicitar'), a:has-text('Solicitar'), button:has-text('Apply'), a:has-text('Apply')").first
+                    ext_btn = page.locator(".jobs-apply-button, button:has-text('Solicitar'), a:has-text('Solicitar'), button:has-text('Apply'), a:has-text('Apply')").first
                     if await ext_btn.is_visible():
-                        try:
-                            async with page.expect_navigation(timeout=10000):
-                                await ext_btn.click()
-                        except Exception:
-                            pass
-                    await handle_external_ats(page, page.url, pdf_path, job_id, auto_submit, proof_path, result)
+                        target_page = await click_external_apply_button(page, ext_btn)
+                        await handle_external_ats(target_page, target_page.url, pdf_path, job_id, auto_submit, proof_path, result)
+                    else:
+                        await handle_external_ats(page, page.url, pdf_path, job_id, auto_submit, proof_path, result)
 
             # --- CASO B: INDEED ---
             elif "indeed.com" in job_url:
@@ -845,12 +867,10 @@ async def apply_to_job(job_url, pdf_path, job_id, auto_submit=True):
                     print("  [Navegador] Botón de postulación externa detectado en Indeed...")
                     ext_btn = page.locator("button:has-text('sitio de la empresa'), a:has-text('sitio de la empresa'), button:has-text('Apply on company site'), a:has-text('Apply on company site')").first
                     if await ext_btn.is_visible():
-                        try:
-                            async with page.expect_navigation(timeout=10000):
-                                await ext_btn.click()
-                        except Exception:
-                            pass
-                    await handle_external_ats(page, page.url, pdf_path, job_id, auto_submit, proof_path, result)
+                        target_page = await click_external_apply_button(page, ext_btn)
+                        await handle_external_ats(target_page, target_page.url, pdf_path, job_id, auto_submit, proof_path, result)
+                    else:
+                        await handle_external_ats(page, page.url, pdf_path, job_id, auto_submit, proof_path, result)
 
             # --- CASO C: COMPUTRABAJO ---
             elif "computrabajo.com" in job_url:

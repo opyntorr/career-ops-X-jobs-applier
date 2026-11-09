@@ -451,3 +451,5 @@
 | 484 | 2026-11-08 | Ollin Star | Ollin Star®, Mantenimiento en Industria de Producción de Huevo en USA con visa TN | 1.0/5 | Discarded | Yes | [484](../reports/484-ollin-star-ollin-star-mantenimiento-en--484-2026-11-08.md) | Veto: Requiere Visa TN en USA - Descartado por visado |
 | 485 | 2026-11-08 | FABRICA DE PAPEL SAN FRANCISCO SA DE CV | Auxiliar de archivo | 4.4/5 | CaptchaBlocked | Yes | [485](../reports/485-fabrica-de-papel-san-francis-auxiliar-de-archivo-485-2026-11-08.md) | Telegram Auto-Runner (indeed) |
 | 486 | 2026-11-08 | Babel Opex | Ingeniero Mecatrónico | 4.0/5 | Applied | Yes | [486](../reports/486-babel-opex-ingeniero-mecatr-nico-486-2026-11-08.md) | Telegram Auto-Runner (indeed) |
+| 487 | 2026-11-09 | Bombardier | Intern, Quality Assurance | 4.3/5 | ExternalPending | Yes | [487](../reports/487-bombardier-intern-quality-assurance-487-2026-11-09.md) | Discord External Apply (SuccessFactors) |
+| 488 | 2026-11-09 | Watlow | Practicante de Ingeniería | 3.8/5 | ExternalPending | Yes | [488](../reports/488-watlow-practicante-de-ingenier-a-488-2026-11-09.md) | Discord External Apply (Corporativo) |

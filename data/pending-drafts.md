@@ -4,6 +4,8 @@ Este registro contiene las vacantes donde el bot completó el perfil, adaptó el
 
 | # | Fecha | Portal | Empresa | Puesto | Motivo / Estado | Enlace Directo al Borrador | Acción Requerida |
 |---|-------|--------|---------|--------|-----------------|----------------------------|------------------|
+| 488 | 2026-11-09 | LinkedIn (Corporativo) | Watlow | Practicante de Ingeniería | Portal corporativo (Corporativo) detectado. Requiere confirmacion o credenciales. | [Abrir #488](https://jobs.dayforcehcm.com/es-MX/watlow/WATLOWCAREERSITE/jobs/19661) | Completar en portal Corporativo |
+| 487 | 2026-11-09 | LinkedIn (SuccessFactors) | Bombardier | Intern, Quality Assurance | Portal corporativo (SuccessFactors) detectado. Requiere confirmacion o credenciales. | [Abrir #487](https://jobs.bombardier.com/job/Colon-Intern,-Quality-Assurance-MEX-76270/16342-en_US/?feedId=384733&utm_source=LinkedInJobPostings) | Completar en portal SuccessFactors |
 | 485 | 2026-11-08 | Indeed | FABRICA DE PAPEL SAN FRANCISCO SA DE CV | Auxiliar de archivo | Google reCAPTCHA / Anti-Bot | [Abrir #485](https://mx.indeed.com/viewjob?jk=1b0dd61be671faf0) | Resolver reCAPTCHA en 1 clic y enviar |
 | 483 | 2026-11-08 | Indeed | Inzi Display México SA de CV | Ingeniero de Automatización | Google reCAPTCHA / Anti-Bot | [Abrir #483](https://mx.indeed.com/viewjob?jk=809d8c2188edb680) | Resolver reCAPTCHA en 1 clic y enviar |
 | 481 | 2026-11-08 | Indeed | STARKEN | Ingeniero de Diseño Mecánico | Google reCAPTCHA | [Abrir #481](https://mx.indeed.com/viewjob?jk=29b4eeb2195c1427) | Resolver reCAPTCHA en 1 clic y enviar |
