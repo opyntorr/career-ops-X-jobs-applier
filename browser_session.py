@@ -729,11 +729,24 @@ async def handle_workday_flow(page, pdf_path, app_id, auto_submit, proof_path, r
                     await page.wait_for_timeout(5000)
 
     # 6. Comprobar si se requiere código OTP o verificación por correo
+    body_curr = ""
+    try:
+        body_curr = await page.locator("body").inner_text()
+    except Exception:
+        pass
+
+    if any(w in body_curr.lower() for w in ["verify your account", "verificar tu cuenta", "verificación de cuenta", "need verification", "resend account verification"]):
+        print("  [Workday Engine] Verificación de cuenta requerida por Workday tras creación...")
+        await page.screenshot(path=str(proof_path))
+        result["status"] = "EmailVerificationPending"
+        result["message"] = "Workday ha creado tu cuenta y enviado un correo de confirmación a tu bandeja de entrada para activarla."
+        return result
+
     otp_inp = page.locator("[data-automation-id='verificationCode'], input[name*='verification' i]").first
     if await otp_inp.is_visible():
         print("  [Workday Engine] Código de verificación de correo requerido por Workday...")
         await page.screenshot(path=str(proof_path))
-        result["status"] = "ExternalPending"
+        result["status"] = "EmailVerificationPending"
         result["message"] = "Workday ha enviado un código de verificación a tu correo para activar la cuenta en este portal."
         return result
 
