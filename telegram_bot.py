@@ -636,13 +636,14 @@ async def run_pipeline_task(chat_id, context: ContextTypes.DEFAULT_TYPE, limit: 
                     [InlineKeyboardButton("Completar en 1 Clic", url=job["url"]),
                      InlineKeyboardButton("Marcar Enviada", callback_data=f"done_{app_id}")]
                 ])
-        elif app_status == "ExternalATS":
-            header_status = f"[#{app_id} ATS Corporativo - Requiere Envio Externo]"
-            action_desc = "Esta vacante no cuenta con Easy Apply; redirige a portal corporativo. Se genero el CV en PDF adjunto para aplicar en el portal."
-            add_pending_draft(app_id, today_str, portal_name, job["company"], job["title"], "Portal corporativo externo", job.get("url", ""), "Aplicar con CV generado")
+        elif app_status in ["ExternalATS", "ExternalPending"]:
+            p_type = apply_res.get("portal_type", "Corporativo")
+            header_status = f"[#{app_id} Portal Corporativo ({p_type}) - Listo para Enviar]"
+            action_desc = f"Esta vacante redirige al portal de la empresa ({p_type}). Se ha generado tu CV personalizado en PDF adjunto. Haz clic en el botón para abrir el portal y adjuntar tu CV en 1 minuto."
+            add_pending_draft(app_id, today_str, f"{portal_name} ({p_type})", job["company"], job["title"], f"Portal corporativo {p_type}", job.get("url", ""), f"Completar en portal {p_type} con CV generado")
             if job.get("url"):
                 reply_markup = InlineKeyboardMarkup([
-                    [InlineKeyboardButton("Abrir Portal", url=job["url"]),
+                    [InlineKeyboardButton(f"Abrir Portal ({p_type})", url=job["url"]),
                      InlineKeyboardButton("Marcar Enviada", callback_data=f"done_{app_id}")]
                 ])
         elif app_status == "FormInProgress":
@@ -669,7 +670,7 @@ async def run_pipeline_task(chat_id, context: ContextTypes.DEFAULT_TYPE, limit: 
             f"Detalle: {action_desc}\n"
             f"Enlace: {job['url']}"
         )
-        if app_status in ["CaptchaBlocked", "FormInProgress", "ExternalATS"]:
+        if app_status in ["CaptchaBlocked", "FormInProgress", "ExternalATS", "ExternalPending"]:
             msg_text += f"\n\nPara confirmarla una vez enviada:\n/aplicada {app_id}"
 
         await bot.send_message(chat_id, msg_text, reply_markup=reply_markup)

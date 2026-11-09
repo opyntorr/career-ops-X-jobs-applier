@@ -92,6 +92,10 @@
    - **Excepción Única Permitida:** Vacantes de **Intern / Becario / Practicante / Trainee** en **empresas conocidas / transnacionales de renombre** (Tier 1/Tier 2 como *Intel, Bosch, Continental, OMRON, HP, Flex, Jabil, Sanmina, GE, Siemens, Schneider Electric, IBM, Tesla, etc.*) que aporten alto valor curricular y de marca al CV.
    - **Puestos Locales (Mazatlán / Sinaloa) y 100% Remotos:** Están exentos de esta restricción (se evalúan normalmente según afinidad técnica y seniority).
    - **Acción del Evaluador:** Cualquier vacante foránea con sueldo publicado o estimado menor a $18,000 MXN que no cumpla con la excepción de internado en empresa destacada debe ser **descartada automáticamente** (Score <= 2.5, Recomendación: SKIP / DO NOT APPLY).
+10. **Veto Estricto a Visas TN, Trabajo en EE.UU. y Labores Agrícolas / Avícolas:**
+   - **Regla Inquebrantable:** El candidato es ciudadano mexicano sin visa de trabajo para Estados Unidos (`has_us_visa: false`). No le interesan empleos que requieran Visa TN, H-1B, patrocinio para EE.UU. o trámites de visado para reubicación laboral fuera de México.
+   - **Términos Vetados:** Quedan vetadas de raíz todas las ofertas que mencionen en título, empresa o descripción: `visa tn`, `tn visa`, `visa de trabajo`, `h-1b`, `green card`, `us citizen`, `trabajo en usa`, `trabajar en usa`, `reubicación a usa`, o labores de campo manual/agrícola como `producción de huevo`, `campo agrícola`, `granja avícola`, `pizca`, `cosecha` (ejemplo histórico descartado: Ollin Star).
+   - **Acción del Evaluador:** Rechazar de inmediato con **Score: 1.0 / 5.0**, **Recomendación: SKIP / RECHAZO TOTAL** y estado **Discarded**. No generar CV ni procesar postulación.
 
 ## Your Exit Narrative
 
