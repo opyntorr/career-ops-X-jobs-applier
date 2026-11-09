@@ -1,48 +1,68 @@
 #!/bin/bash
-# Career-Ops Discord Bot Launcher Script
+# Career-Ops Discord Command Center Launcher
 DIR="/home/opyntorr/career-ops"
 cd "$DIR" || exit 1
 
-# Load NVM or set PATH to modern Node version
-export NVM_DIR="$HOME/.nvm"
-if [ -s "$NVM_DIR/nvm.sh" ]; then
-    . "$NVM_DIR/nvm.sh"
-fi
+PYTHON="/home/opyntorr/Jobs_Applier_AI_Agent/.venv/bin/python"
+LOGFILE="$DIR/discord-bot.log"
+PIDFILE="$DIR/discord-bot.pid"
 
-# Fallback: Ensure modern Node version (v20+) is in PATH for GUI launches
-if ! command -v node > /dev/null || [ "$(node -v | cut -d'.' -f1 | tr -d 'v')" -lt 18 ]; then
-    if [ -f "$HOME/.nvm/versions/node/v20.20.2/bin/node" ]; then
-        export PATH="$HOME/.nvm/versions/node/v20.20.2/bin:$PATH"
-    elif [ -f "$HOME/.nvm/versions/node/v24.18.0/bin/node" ]; then
-        export PATH="$HOME/.nvm/versions/node/v24.18.0/bin:$PATH"
-    fi
-fi
+case "$1" in
+    stop)
+        if [ -f "$PIDFILE" ]; then
+            PID=$(cat "$PIDFILE")
+            if kill -0 "$PID" 2>/dev/null; then
+                kill "$PID"
+                echo "[OK] Bot de Discord detenido (PID $PID)."
+            else
+                echo "[Info] Proceso con PID $PID no encontrado."
+            fi
+            rm -f "$PIDFILE"
+        else
+            PIDS=$(pgrep -f "discord_bot.py")
+            if [ -n "$PIDS" ]; then
+                kill $PIDS
+                echo "[OK] Procesos discord_bot.py detenidos."
+            else
+                echo "[Info] No hay ningun bot de Discord en ejecucion."
+            fi
+        fi
+        exit 0
+        ;;
+    status)
+        PIDS=$(pgrep -f "discord_bot.py")
+        if [ -n "$PIDS" ]; then
+            echo "[OK] Bot de Discord ACTIVO (PID: $PIDS)."
+        else
+            echo "[Inactivo] El bot de Discord NO esta en ejecucion."
+        fi
+        exit 0
+        ;;
+    logs)
+        tail -n 50 -f "$LOGFILE"
+        exit 0
+        ;;
+    *)
+        PIDS=$(pgrep -f "discord_bot.py")
+        if [ -n "$PIDS" ]; then
+            echo "[Aviso] El bot de Discord ya se encuentra en ejecucion (PID: $PIDS)."
+            exit 0
+        fi
 
-# Check if bot is already running
-if pgrep -f "discord-bot.mjs" > /dev/null; then
-    if command -v notify-send > /dev/null; then
-        notify-send "Career-Ops Discord Bot" "El Bot de Discord ya se encuentra en ejecución." -i dialog-information
-    fi
-    echo "Discord bot is already running."
-    exit 0
-fi
+        echo "[Inicio] Arrancando Career-Ops Discord Command Center..."
+        mkdir -p "$DIR/data"
+        export PYTHONPATH="$DIR"
+        setsid "$PYTHON" -u "$DIR/discord_bot.py" >> "$LOGFILE" 2>&1 &
+        BOT_PID=$!
+        echo "$BOT_PID" > "$PIDFILE"
 
-if command -v notify-send > /dev/null; then
-    notify-send "Career-Ops Discord Bot" "Iniciando Bot de Discord..." -i dialog-information
-fi
-
-# Run the bot in background logging output
-nohup node discord-bot.mjs > "$DIR/discord-bot.log" 2>&1 &
-
-sleep 2
-if pgrep -f "discord-bot.mjs" > /dev/null; then
-    if command -v notify-send > /dev/null; then
-        notify-send "Career-Ops Discord Bot" "¡Bot de Discord iniciado correctamente!" -i dialog-positive
-    fi
-    echo "Discord bot started successfully."
-else
-    if command -v notify-send > /dev/null; then
-        notify-send "Career-Ops Discord Bot" "Error al iniciar el bot. Revisa discord-bot.log" -i dialog-error
-    fi
-    echo "Failed to start Discord bot. Check discord-bot.log"
-fi
+        sleep 2
+        if kill -0 "$BOT_PID" 2>/dev/null; then
+            echo "[OK] Bot de Discord iniciado correctamente con PID $BOT_PID."
+            echo "Logs disponibles en: $LOGFILE"
+        else
+            echo "[Error] No se pudo iniciar el bot de Discord. Consulta $LOGFILE."
+            exit 1
+        fi
+        ;;
+esac

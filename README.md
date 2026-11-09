@@ -85,9 +85,31 @@ Abre `config/profile.yml` y ajusta:
 
 ---
 
-### 4. Crea tu Bot de Telegram (`config/telegram.yml`)
+### 4. Configura tu Centro de Comando (Discord o Telegram)
 
-Para monitorear y controlar las postulaciones desde tu teléfono:
+Puedes controlar y monitorear el sistema tanto desde **Discord** (recomendado por su organizacion multicanal) como desde **Telegram**.
+
+#### Opcion A: Centro de Comando en Discord (Recomendado)
+
+Discord permite separar las conversaciones y acciones en 4 canales dedicados bajo la categoria `CAREER-OPS COMMAND CENTER`:
+1. `#control-y-batches`: Panel interactivo persistente con botones, ejecucion de lotes y comprobantes de envio con PDF.
+2. `#finalizacion-manual`: Vacantes retenidas por reCAPTCHA o portales corporativos complejos (Workday/Taleo) con boton directo `[Abrir Portal]` y `[Marcar como Enviada]`.
+3. `#chat-antigravity`: Chat interactivo directo con Antigravity CLI (`agy`) para ajustar reglas, consultar metricas o pedir analisis desde el movil.
+4. `#generador-cvs`: Pegas cualquier enlace o descripcion de empleo y genera al instante el CV adaptado a 1 pagina en PDF.
+
+**Pasos de Configuracion:**
+1. Ve a [Discord Developer Portal](https://discord.com/developers/applications) y crea una aplicacion.
+2. En la pestana **Bot**, crea el bot, activa el intent **Message Content Intent** y copia el **Bot Token**.
+3. En **OAuth2 -> URL Generator**, selecciona el scope `bot` con permisos `Manage Channels`, `Send Messages`, `Attach Files`, `Embed Links` e invitalo a tu servidor.
+4. Copia la plantilla y coloca tu token:
+   ```bash
+   cp config/discord.example.yml config/discord.yml
+   ```
+5. Al iniciar el bot por primera vez, creara automaticamente la categoria y los canales en tu servidor.
+
+#### Opcion B: Bot de Telegram
+
+Para monitorear y controlar las postulaciones desde tu chat de Telegram:
 
 1. Abre Telegram y busca a **`@BotFather`**.
 2. Envía `/newbot`, asigna un nombre y un usuario a tu bot.
@@ -131,9 +153,24 @@ El bot utiliza tu sesión activa de Firefox para navegar y postularse sin pedir 
 
 ## Modo de Uso
 
-### Iniciar el Bot de Telegram en Segundo Plano
+### Iniciar el Centro de Comando de Discord
 
-Para encender el bot de Telegram como servicio daemon:
+Para iniciar el bot de Discord en segundo plano:
+
+```bash
+./launch-discord-bot.sh
+```
+
+Comandos de gestion:
+```bash
+./launch-discord-bot.sh status   # Ver si esta activo
+./launch-discord-bot.sh logs     # Ver logs en tiempo real
+./launch-discord-bot.sh stop     # Detener el servicio
+```
+
+### Iniciar el Bot de Telegram (Opcional)
+
+Para encender el bot de Telegram en segundo plano:
 
 ```bash
 ./launch-telegram-bot.sh start

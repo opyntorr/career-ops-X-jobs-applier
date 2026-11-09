@@ -1,0 +1,17 @@
+# Career-Ops Discord Command Center Configuration Template
+# Copia este archivo a config/discord.yml y coloca tu bot_token.
+# NUNCA subas tu token real ni tu config/discord.yml a repositorios publicos.
+
+bot_token: "TU_DISCORD_BOT_TOKEN_AQUI"
+
+category_name: "CAREER-OPS COMMAND CENTER"
+
+channels:
+  control: "control-y-batches"
+  manual: "finalizacion-manual"
+  antigravity: "chat-antigravity"
+  cv_generator: "generador-cvs"
+
+min_score: 3.8
+default_batch_limit: 5
+hours_old: 72
