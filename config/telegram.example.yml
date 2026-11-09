@@ -1,0 +1,17 @@
+# Career-Ops Telegram Bot Configuration Template
+# Copia este archivo a config/telegram.yml y coloca tus credenciales.
+# NUNCA subas tu token real ni tu config/telegram.yml a repositorios publicos.
+
+# Token provisto por @BotFather en Telegram
+bot_token: "1234567890:ABCdefGHIjklMNOpqrsTUVwxyz"
+
+# Lista de IDs de Telegram autorizados para usar el bot (obten tu ID con @userinfobot)
+allowed_chat_ids:
+  - 123456789
+
+# Parametros de ejecucion por defecto
+default_batch_limit: 5
+hours_old: 72
+min_score: 3.8
+send_pdf: true
+send_proof: true

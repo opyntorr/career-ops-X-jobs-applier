@@ -1,0 +1,64 @@
+{
+  "name": "Christian Omar Payán Torróntegui",
+  "contact_line": "Zapopan, Jalisco | 669 100 3234",
+  "email": { "url": "omarpayant@gmail.com", "display": "omarpayant@gmail.com" },
+  "linkedin": { "url": "https://linkedin.com/in/omarpayant/", "display": "linkedin.com/in/omarpayant/" },
+  "github": { "url": "https://github.com/opyntorr", "display": "github.com/opyntorr" },
+  "summary": "Robotics & Digital Systems Engineering student focused on product design, advanced manufacturing, and robotics. Proven experience in 3D modeling, additive manufacturing, and Python simulation. Seeking to leverage analytical design to bridge creative design with technical feasibility within Railway Engineering.",
+  "education": [
+    {
+      "institution": "Tecnológico de Monterrey",
+      "location": "Zapopan, Jalisco",
+      "degree": "B.S. Robotics and Digital Systems",
+      "dates": "Expected December 2026",
+      "coursework": ["Python Programming", "CAD Design", "Advanced 3D modeling"]
+    }
+  ],
+  "experience": [
+    {
+      "company": "Industrial Mounts & Robotic Support Interfaces",
+      "role": "Mechanical & Product Designer",
+      "location": "Zapopan, Jalisco",
+      "dates": "Feb-Jun 2026",
+      "bullets": [
+        "Engineered mechanical interfaces for VR controllers (Meta Quest 3), developing a 3-DOF system that reduced fabrication costs by 95% vs commercial alternatives",
+        "Designed and prototyped a custom mini PC enclosure for robust deployment in industrial environments, utilizing 3D-printed fiberglass-reinforced PETG for its ideal thermal and mechanical properties"
+      ]
+    }
+  ],
+  "projects": [
+    {
+      "name": "Open-Source Gastrointestinal Medical Phantom",
+      "context": "Medical phantom via advanced FDM 3D printing",
+      "dates": "Ago-Dic 2025 – Feb-Jun 2026",
+      "bullets": [
+        "Engineered phantom via advanced FDM 3D printing (TPU/PETG), reducing prototyping costs by 80% vs commercial alternatives",
+        "Managed development using Agile methodologies to iterate rapidly on anatomical accuracy and material constraints"
+      ]
+    },
+    {
+      "name": "Port Automation & Drone Sim",
+      "context": "Developed a port simulation environment utilizing ROS 2 and Gazebo in partnership with OMRON",
+      "dates": "Ago-Dic 2025",
+      "bullets": [
+        "Engineered URDF models and C++/Python ROS 2 nodes for kinematic control and reliable flight telemetry",
+        "Designed & 3D-printed custom hardware: drone mirror/lens mounts, and an AMR bracket (LiDAR, ArUco, Jetson)"
+      ]
+    },
+    {
+      "name": "DigiMix",
+      "context": "Designed an embedded system integrating custom hardware and digital interfaces with Intel",
+      "dates": "Ago-Dic 2024",
+      "bullets": [
+        "Designed custom PCB and 3D-printed casing; engineered hardware using dual-core STM32 and ESP32 (WebSockets)",
+        "Applied Scrum to manage lifecycle, integrating hardware and software architectures with zero logic faults"
+      ]
+    }
+  ],
+  "skills": [
+    { "category": "Programming & Languages", "items": "Python, C++, Spanish (Native), English (B2)" },
+    { "category": "Robotics & Simulation", "items": "ROS 2, Gazebo, URDF" },
+    { "category": "Design & Electronics", "items": "SOLIDWORKS, Fusion 360, Eagle" },
+    { "category": "Tools & Methodologies", "items": "Git, Agile, Scrum, Advanced FDM 3D Printing, Linux (Ubuntu), Docker" }
+  ]
+}

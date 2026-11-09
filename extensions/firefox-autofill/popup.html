@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Career-Ops FastApply</title>
+  <style>
+    body {
+      width: 320px;
+      margin: 0;
+      padding: 16px;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #0f172a;
+      color: #f8fafc;
+    }
+    h2 {
+      margin: 0 0 12px 0;
+      font-size: 16px;
+      font-weight: 700;
+      color: #60a5fa;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    p {
+      font-size: 12px;
+      color: #94a3b8;
+      margin: 0 0 14px 0;
+    }
+    button.primary {
+      width: 100%;
+      background: #2563eb;
+      color: white;
+      border: none;
+      padding: 10px 14px;
+      border-radius: 6px;
+      font-weight: 600;
+      font-size: 14px;
+      cursor: pointer;
+      margin-bottom: 12px;
+      transition: background 0.15s;
+    }
+    button.primary:hover {
+      background: #1d4ed8;
+    }
+    .section-title {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #64748b;
+      margin: 12px 0 6px 0;
+    }
+    .snippet-btn {
+      width: 100%;
+      background: #1e293b;
+      color: #e2e8f0;
+      border: 1px solid #334155;
+      padding: 8px 10px;
+      border-radius: 4px;
+      font-size: 12px;
+      text-align: left;
+      cursor: pointer;
+      margin-bottom: 6px;
+      transition: all 0.15s;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .snippet-btn:hover {
+      background: #334155;
+      color: #38bdf8;
+      border-color: #38bdf8;
+    }
+    .status-msg {
+      font-size: 11px;
+      color: #34d399;
+      text-align: center;
+      min-height: 16px;
+      margin-top: 6px;
+    }
+  </style>
+</head>
+<body>
+  <h2>⚡ Career-Ops FastApply</h2>
+  <p>Christian Omar Payán Torróntegui</p>
+
+  <button id="btn-autofill" class="primary">Autollenar Formulario Actual</button>
+
+  <div class="section-title">Generador de Cuentas</div>
+  <button id="btn-copy-pass" class="snippet-btn">Copiar Contraseña Segura (CareerOps2026!Sec)</button>
+
+  <div class="section-title">Respuestas Rápidas (Portales)</div>
+  <button id="btn-copy-omron" class="snippet-btn">Copiar: Sistema Integrado (OMRON)</button>
+  <button id="btn-copy-mot" class="snippet-btn">Copiar: Motivación / Por qué este rol</button>
+  <button id="btn-copy-summary" class="snippet-btn">Copiar: Resumen Profesional (ES)</button>
+  <button id="btn-copy-linkedin" class="snippet-btn">Copiar: URL LinkedIn</button>
+
+  <div id="status" class="status-msg"></div>
+
+  <script src="profile.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>

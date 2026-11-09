@@ -101,3 +101,36 @@ package-lock.json
 
 # Planning (local scratchpad)
 plan/
+
+# Security and Credentials (NEVER COMMIT)
+config/telegram.yml
+config/telegram.json
+config/discord.yml
+data/firefox_storage_state.json
+data/discord-bot-state.json
+data/discord-state.json
+data/pending-drafts.md
+*.sqlite
+*.sqlite3
+*.sqlite-wal
+*.sqlite-shm
+data/*.log
+data/*.pid
+*.log
+*.pid
+__pycache__/
+*.pyc
+
+# Ephemeral scraping & proof files
+output/proofs/
+*.txt
+!requirements.txt
+!modes/**/*.txt
+data/extracted_*.json
+data/evaluated_*.json
+cv-*.json
+cv_*.json
+data/urls_to_check.txt
+scratch/
+tectonic*
+

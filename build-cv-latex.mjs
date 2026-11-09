@@ -55,14 +55,10 @@ function buildEducation(entries) {
   const blocks = [];
   for (const e of entries) {
     if (!e) continue;
-    let block = `    \\resumeSubheading\n      {${escapeLatex(e.institution)}}{${escapeLatex(e.location)}}\n      {${escapeLatex(e.degree)}}{${escapeLatex(e.dates)}}`;
-    if (Array.isArray(e.coursework) && e.coursework.length > 0) {
-      const courses = e.coursework.map(c => escapeLatex(c)).join(', ');
-      block += `\n        \\resumeItemListStart\n            \\resumeItem{\\textbf{Coursework:} ${courses}}\n        \\resumeItemListEnd`;
-    }
-    blocks.push(block);
+    const courses = Array.isArray(e.coursework) ? e.coursework.map(c => escapeLatex(c)).join(', ') : escapeLatex(e.coursework || '');
+    blocks.push(`    \\educationItem[\n        university={${escapeLatex(e.institution)}},\n        college={${escapeLatex(e.location)}},\n        graduation={${escapeLatex(e.dates)}},\n        program={${escapeLatex(e.degree)}},\n        coursework={${courses}}\n    ]`);
   }
-  return blocks.join('\n\n');
+  return blocks.join('\n');
 }
 
 function buildExperience(entries) {
@@ -70,10 +66,10 @@ function buildExperience(entries) {
   const blocks = [];
   for (const e of entries) {
     if (!e) continue;
-    const bullets = Array.isArray(e.bullets) ? e.bullets.map(b => `            \\resumeItem{${escapeLatex(b)}}`).join('\n') : '';
-    blocks.push(`    \\resumeSubheading\n      {${escapeLatex(e.company)}}{${escapeLatex(e.dates)}}\n      {${escapeLatex(e.role)}}{${escapeLatex(e.location)}}\n      \\resumeItemListStart\n${bullets}\n      \\resumeItemListEnd`);
+    const bullets = Array.isArray(e.bullets) ? e.bullets.map(b => `        \\item ${escapeLatex(b)}`).join('\n') : '';
+    blocks.push(`    \\experienceItem[\n        company={${escapeLatex(e.company)}},\n        location={${escapeLatex(e.location)}},\n        position={${escapeLatex(e.role)}},\n        duration={${escapeLatex(e.dates)}}\n    ]\n    \\begin{itemize}\n        \\itemsep -6pt {}\n${bullets}\n    \\end{itemize}`);
   }
-  return blocks.join('\n\n');
+  return blocks.join('\n');
 }
 
 function buildProjects(entries) {
@@ -81,20 +77,23 @@ function buildProjects(entries) {
   const blocks = [];
   for (const e of entries) {
     if (!e) continue;
-    const context = e.context ? ` \\emph{$|$ ${escapeLatex(e.context)}}` : '';
-    const bullets = Array.isArray(e.bullets) ? e.bullets.map(b => `            \\resumeItem{${escapeLatex(b)}}`).join('\n') : '';
-    blocks.push(`    \\resumeProjectHeading\n      {\\textbf{${escapeLatex(e.name)}}${context}}{${escapeLatex(e.dates)}}\n      \\resumeItemListStart\n${bullets}\n      \\resumeItemListEnd`);
+    const bullets = Array.isArray(e.bullets) ? e.bullets.map(b => `        \\item ${escapeLatex(b)}`).join('\n') : '';
+    const highlight = e.context ? escapeLatex(e.context) : (e.keyHighlight ? escapeLatex(e.keyHighlight) : 'Technical Project');
+    const partner = e.partner || e.socio_formador || e.socioFormador;
+    const partnerStr = partner ? `,\n        partner={${escapeLatex(partner)}}` : '';
+    blocks.push(`    \\projectItem[\n        title={${escapeLatex(e.name || e.title)}},\n        duration={${escapeLatex(e.dates || e.duration)}},\n        keyHighlight={${highlight}}${partnerStr}\n    ]\n    \\begin{itemize}\n        \\vspace{-0.5em}\n        \\itemsep -6pt {}\n${bullets}\n    \\end{itemize}`);
   }
-  return blocks.join('\n\n');
+  return blocks.join('\n');
 }
 
 function buildSkills(categories) {
   if (!Array.isArray(categories) || categories.length === 0) return '';
-  return categories.map(c => {
+  const items = categories.map(c => {
     if (!c) return '';
-    const items = Array.isArray(c.items) ? c.items.join(', ') : (c.items || '');
-    return `        \\textbf{${escapeLatex(c.category)}}{: ${escapeLatex(items)}} \\\\`;
-  }).filter(Boolean).join('\n');
+    const list = Array.isArray(c.items) ? c.items.join(', ') : (c.items || c.skills || '');
+    return `    \\skillItem[\n        category={${escapeLatex(c.category)}},\n        skills={${escapeLatex(list)}}\n    ]`;
+  }).filter(Boolean);
+  return items.join(' \\\\\n');
 }
 
 async function main() {
@@ -150,9 +149,12 @@ async function main() {
   const linkedinDisplay = payload.linkedin?.display || '';
   const githubUrl = sanitizeUrl(payload.github?.url || '');
   const githubDisplay = payload.github?.display || '';
+  const phone = payload.phone || '669 100 3234';
 
   const substitutions = {
     NAME: escapeLatex(payload.name || ''),
+    PHONE: escapeLatex(phone),
+    SUMMARY: escapeLatex(payload.summary || ''),
     CONTACT_LINE: escapeLatex(payload.contact_line || ''),
     EMAIL_URL: emailUrl,
     EMAIL_DISPLAY: escapeLatex(emailDisplay),

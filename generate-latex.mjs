@@ -17,6 +17,9 @@ import { readFile, writeFile, stat, copyFile, rm } from 'fs/promises';
 import { resolve, basename, dirname, join } from 'path';
 import { execFileSync } from 'child_process';
 import { existsSync, mkdirSync } from 'fs';
+import { fileURLToPath } from 'url';
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
 
 // The template emits 4 sections (Education, Work Experience, Personal
 // Projects, Technical Skills). We count \section{} blocks rather than match
@@ -55,11 +58,21 @@ async function main() {
   }
 
   const issues = [];
+  const texDir = dirname(absPath);
+
+  // Ensure resume.cls is available in the target directory if needed
+  const clsSrc = resolve(__dirname, 'templates', 'resume.cls');
+  const clsDest = join(texDir, 'resume.cls');
+  if (existsSync(clsSrc) && !existsSync(clsDest)) {
+    try {
+      await copyFile(clsSrc, clsDest);
+    } catch { /* ignore */ }
+  }
 
   // Check section count (language-agnostic — see MIN_SECTIONS).
-  const sectionCount = (content.match(/\\section\{/g) || []).length;
+  const sectionCount = (content.match(/\\section\{|\\sectionTitle\{|\\begin\{(education|skills|experience)Section\}/g) || []).length;
   if (sectionCount < MIN_SECTIONS) {
-    issues.push(`Expected at least ${MIN_SECTIONS} \\section{} blocks (Education, Work Experience, Projects, Skills — or localized equivalents), found ${sectionCount}`);
+    issues.push(`Expected at least ${MIN_SECTIONS} section blocks (Education, Work Experience, Projects, Skills — or localized equivalents), found ${sectionCount}`);
   }
 
   // The template cannot render CJK; fail with guidance instead of a broken PDF.
@@ -67,10 +80,13 @@ async function main() {
     issues.push('CJK characters detected. The LaTeX template does not support Japanese/Chinese/Korean yet (pdfLaTeX setup with no CJK font). Use `pdf` mode (HTML to PDF, which renders CJK) for these CVs.');
   }
 
-  // Check required commands are used
-  for (const cmd of REQUIRED_COMMANDS) {
-    if (!new RegExp(cmd).test(content)) {
-      issues.push(`Missing command: ${cmd}`);
+  // Check required commands for standard templates
+  const isResumeCls = content.includes('\\documentclass{resume}');
+  if (!isResumeCls) {
+    for (const cmd of REQUIRED_COMMANDS) {
+      if (!new RegExp(cmd).test(content)) {
+        issues.push(`Missing command: ${cmd}`);
+      }
     }
   }
 
@@ -102,8 +118,8 @@ async function main() {
     if (/\\resumeProjectHeading/.test(line)) projectHeadingCount++;
   }
 
-  // Check pdfgentounicode
-  if (!content.includes('\\pdfgentounicode=1')) {
+  // Check pdfgentounicode for standard article templates
+  if (!isResumeCls && !content.includes('\\pdfgentounicode=1')) {
     issues.push('Missing \\pdfgentounicode=1 (ATS compatibility)');
   }
 
@@ -131,7 +147,6 @@ async function main() {
   }
 
   // --- Compile .tex → .pdf ---
-  const texDir = dirname(absPath);
   const texBase = basename(absPath, '.tex');
   const defaultPdf = join(texDir, `${texBase}.pdf`);
   const targetPdf = outputPath ? resolve(outputPath) : defaultPdf;
